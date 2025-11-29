@@ -224,6 +224,7 @@
             justify-content: center;
             gap: 10px;
             margin: 15px 0;
+            text-decoration: none;
         }
 
         .btn:hover {
@@ -240,6 +241,17 @@
         .app-download:hover {
             background: #059669;
             box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .url-display {
+            background: #f1f5f9;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #475569;
+            word-break: break-all;
         }
 
         footer {
@@ -289,6 +301,10 @@
                     <p><i class="fas fa-info-circle"></i> <strong>ID da Campainha:</strong> CAMP-001</p>
                     <p><i class="fas fa-wifi"></i> <strong>Conexão:</strong> Via Internet</p>
                     <p><i class="fas fa-user"></i> <strong>Proprietário:</strong> Seu Nome</p>
+                </div>
+                
+                <div class="url-display" id="url-display">
+                    URL do QR Code será exibida aqui
                 </div>
                 
                 <button id="generate-btn" class="btn">
@@ -401,6 +417,7 @@
         // Elementos do DOM
         const qrcodeContainer = document.getElementById('qrcode');
         const generateBtn = document.getElementById('generate-btn');
+        const urlDisplay = document.getElementById('url-display');
         
         // Dados da campainha
         const campainhaData = {
@@ -408,13 +425,27 @@
             name: "Seu Nome"
         };
         
+        // Obter a URL base atual
+        function getBaseUrl() {
+            // Se estiver no GitHub Pages, usa a URL completa
+            if (window.location.hostname.includes('github.io')) {
+                return window.location.origin + window.location.pathname.replace(/\/$/, '');
+            }
+            // Se estiver local, usa a URL relativa
+            return '';
+        }
+        
         // Gerar QR Code
         function generateQRCode() {
             // Limpar QR Code anterior
             qrcodeContainer.innerHTML = "";
             
-            // Criar URL com parâmetros
-            const url = `${window.location.origin}/call.html?id=${campainhaData.id}&name=${encodeURIComponent(campainhaData.name)}`;
+            // Criar URL com parâmetros - AGORA COM URL COMPLETA
+            const baseUrl = getBaseUrl();
+            const url = `${baseUrl}/call.html?id=${campainhaData.id}&name=${encodeURIComponent(campainhaData.name)}`;
+            
+            // Exibir a URL para debug
+            urlDisplay.textContent = url;
             
             // Gerar QR Code
             new QRCode(qrcodeContainer, {
@@ -425,6 +456,8 @@
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
+            
+            console.log("QR Code gerado com URL:", url);
         }
         
         // Botão para gerar novo QR Code
