@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Receptor - Campainha Digital</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        header {
+            background: #2563eb;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .status-waiting .status-icon {
+            color: #64748b;
+        }
+
+        .status-incoming .status-icon {
+            color: #ef4444;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-active .status-icon {
+            color: #10b981;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .status-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .status-waiting .status-text {
+            color: #64748b;
+        }
+
+        .status-incoming .status-text {
+            color: #ef4444;
+        }
+
+        .status-active .status-text {
+            color: #10b981;
+        }
+
+        .status-subtext {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        .visitor-info {
+            background: #f1f5f9;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            display: none;
+        }
+
+        .visitor-info.show {
+            display: block;
+        }
+
+        .visitor-info h3 {
+            color: #2563eb;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .visitor-info p {
+            color: #475569;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .visitor-info i {
+            color: #2563eb;
+            width: 20px;
+        }
+
+        .call-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 50px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 150px;
+        }
+
+        .btn-answer {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-answer:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-hangup {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-hangup:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-reject {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #475569;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(100, 116, 139, 0.3);
+        }
+
+        .audio-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .audio-controls.show {
+            display: flex;
+        }
+
+        .audio-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            color: #64748b;
+        }
+
+        .audio-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .audio-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .history-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .history-section h3 {
+            color: #2563eb;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: #2563eb;
+        }
+
+        .history-content {
+            flex: 1;
+        }
+
+        .history-content h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .history-content p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .history-time {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        footer {
+            background: #f1f5f9;
+            padding: 15px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 480px) {
+            .call-controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Campainha Digital</h1>
+        <p>App Receptor</p>
+    </header>
+
+    <div class="container">
+        <div id="status-waiting" class="status-card status-waiting">
+            <div class="status-icon">
+                <i class="fas fa-bell-slash"></i>
+            </div>
+            <div class="status-text">Aguardando chamadas</div>
+            <div class="status-subtext">Seu app está pronto para receber chamadas</div>
+        </div>
+
+        <div id="status-incoming" class="status-card status-incoming hidden">
+            <div class="status-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="status-text">PORTÃO CHAMANDO!</div>
+            <div class="status-subtext">Alguém está na sua porta</div>
+        </div>
+
+        <div id="status-active" class="status-card status-active hidden">
+            <div class="status-icon">
+                <i class="fas fa-phone-volume"></i>
+            </div>
+            <div class="status-text">Chamada em andamento</div>
+            <div class="status-subtext">Você está conectado com o visitante</div>
+        </div>
+
+        <div id="visitor-info" class="visitor-info">
+            <h3><i class="fas fa-user"></i> Informações da Visita</h3>
+            <p><i class="fas fa-id-card"></i> <strong>Visitante:</strong> <span id="visitor-name">Não identificado</span></p>
+            <p><i class="fas fa-box"></i> <strong>Motivo:</strong> <span id="visitor-reason">Não informado</span></p>
+            <p><i class="fas fa-clock"></i> <strong>Horário:</strong> <span id="visitor-time">--:--</span></p>
+        </div>
+
+        <div id="answer-controls" class="call-controls hidden">
+            <button id="answer-btn" class="btn btn-answer">
+                <i class="fas fa-phone"></i> Atender
+            </button>
+            <button id="reject-btn" class="btn btn-reject">
+                <i class="fas fa-phone-slash"></i> Rejeitar
+            </button>
+        </div>
+
+        <div id="call-controls" class="call-controls hidden">
+            <button id="hangup-btn" class="btn btn-hangup">
+                <i class="fas fa-phone-slash"></i> Desligar
+            </button>
+        </div>
+
+        <div id="audio-controls" class="audio-controls">
+            <button id="mute-btn" class="audio-btn">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button id="speaker-btn" class="audio-btn">
+                <i class="fas fa-volume-up"></i>
+            </button>
+            <button id="video-btn" class="audio-btn">
+                <i class="fas fa-video"></i>
+            </button>
+        </div>
+
+        <div class="history-section">
+            <h3><i class="fas fa-history"></i> Histórico de Chamadas</h3>
+            <div id="history-list">
+                <div class="history-item">
+                    <div class="history-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="history-content">
+                        <h4>Entregador</h4>
+                        <p>Entrega de pacote</p>
+                    </div>
+                    <div class="history-time">14:30</div>
+                </div>
+                <div class="history-item">
+                    <div class="history-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="history-content">
+                        <h4>Visitante</h4>
+                        <p>Visita não atendida</p>
+                    </div>
+                    <div class="history-time">10:15</div>
+                </div>
+                <div class="history-item">
+                    <div class="history-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="history-content">
+                        <h4>Manutenção</h4>
+                        <p>Visita técnica</p>
+                    </div>
+                    <div class="history-time">Ontem, 16:45</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2023 Campainha Digital | App Receptor v1.0</p>
+    </footer>
+
+    <script>
+        // Elementos do DOM
+        const statusWaiting = document.getElementById('status-waiting');
+        const statusIncoming = document.getElementById('status-incoming');
+        const statusActive = document.getElementById('status-active');
+        const visitorInfo = document.getElementById('visitor-info');
+        const visitorName = document.getElementById('visitor-name');
+        const visitorReason = document.getElementById('visitor-reason');
+        const visitorTime = document.getElementById('visitor-time');
+        const answerControls = document.getElementById('answer-controls');
+        const callControls = document.getElementById('call-controls');
+        const audioControls = document.getElementById('audio-controls');
+        const answerBtn = document.getElementById('answer-btn');
+        const rejectBtn = document.getElementById('reject-btn');
+        const hangupBtn = document.getElementById('hangup-btn');
+        const muteBtn = document.getElementById('mute-btn');
+        const speakerBtn = document.getElementById('speaker-btn');
+        const videoBtn = document.getElementById('video-btn');
+        
+        // Variáveis de estado
+        let isMuted = false;
+        let isSpeakerOn = false;
+        let isVideoOn = false;
+        let ringtoneInterval;
+        
+        // Simular chamada recebida após 10 segundos
+        setTimeout(() => {
+            simulateIncomingCall();
+        }, 10000);
+        
+        // Função para simular chamada recebida
+        function simulateIncomingCall() {
+            statusWaiting.classList.add('hidden');
+            statusIncoming.classList.remove('hidden');
+            visitorInfo.classList.add('show');
+            answerControls.classList.remove('hidden');
+            
+            // Definir informações do visitante
+            visitorName.textContent = "Carlos Pereira (Correios)";
+            visitorReason.textContent = "Entrega de pacote";
+            visitorTime.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            // Reproduzir som de chamada
+            playRingtone();
+            
+            // Adicionar ao histórico
+            addToHistory("Carlos Pereira (Correios)", "Chamada recebida", new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+        }
+        
+        // Função para atender a chamada
+        answerBtn.addEventListener('click', () => {
+            statusIncoming.classList.add('hidden');
+            statusActive.classList.remove('hidden');
+            answerControls.classList.add('hidden');
+            callControls.classList.remove('hidden');
+            audioControls.classList.add('show');
+            
+            // Parar som de chamada
+            stopRingtone();
+            
+            // Iniciar chamada
+            console.log("Chamada atendida - iniciando stream de áudio/vídeo");
+            
+            // Adicionar ao histórico
+            addToHistory("Carlos Pereira (Correios)", "Chamada atendida", new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+        });
+        
+        // Função para rejeitar a chamada
+        rejectBtn.addEventListener('click', () => {
+            resetToWaiting();
+            
+            // Adicionar ao histórico
+            addToHistory("Carlos Pereira (Correios)", "Chamada rejeitada", new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+        });
+        
+        // Função para desligar a chamada
+        hangupBtn.addEventListener('click', () => {
+            resetToWaiting();
+            
+            // Adicionar ao histórico
+            addToHistory("Carlos Pereira (Correios)", "Chamada encerrada", new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+        });
+        
+        // Função para resetar ao estado de espera
+        function resetToWaiting() {
+            statusActive.classList.add('hidden');
+            statusIncoming.classList.add('hidden');
+            statusWaiting.classList.remove('hidden');
+            callControls.classList.add('hidden');
+            audioControls.classList.remove('show');
+            visitorInfo.classList.remove('show');
+            answerControls.classList.add('hidden');
+            
+            // Parar som de chamada
+            stopRingtone();
+            
+            console.log("Chamada encerrada");
+        }
+        
+        // Controles de áudio/vídeo
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            muteBtn.classList.toggle('active');
+            
+            if (isMuted) {
+                muteBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+                console.log("Microfone desligado");
+            } else {
+                muteBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                console.log("Microfone ligado");
+            }
+        });
+        
+        speakerBtn.addEventListener('click', () => {
+            isSpeakerOn = !isSpeakerOn;
+            speakerBtn.classList.toggle('active');
+            
+            if (isSpeakerOn) {
+                speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                console.log("Alto-falante ligado");
+            } else {
+                speakerBtn.innerHTML = '<i class="fas fa-volume-down"></i>';
+                console.log("Alto-falante desligado");
+            }
+        });
+        
+        videoBtn.addEventListener('click', () => {
+            isVideoOn = !isVideoOn;
+            videoBtn.classList.toggle('active');
+            
+            if (isVideoOn) {
+                videoBtn.innerHTML = '<i class="fas fa-video"></i>';
+                console.log("Câmera ligada");
+            } else {
+                videoBtn.innerHTML = '<i class="fas fa-video-slash"></i>';
+                console.log("Câmera desligada");
+            }
+        });
+        
+        // Funções para simular som de chamada
+        function playRingtone() {
+            console.log("Tocando som de chamada");
+            
+            // Simular o som com vibração visual
+            ringtoneInterval = setInterval(() => {
+                statusIncoming.style.opacity = statusIncoming.style.opacity === '0.5' ? '1' : '0.5';
+            }, 500);
+        }
+        
+        function stopRingtone() {
+            clearInterval(ringtoneInterval);
+            statusIncoming.style.opacity = '1';
+            console.log("Som de chamada parado");
+        }
+        
+        // Função para adicionar ao histórico
+        function addToHistory(name, action, time) {
+            const historyList = document.getElementById('history-list');
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            
+            const iconClass = action.includes('atendida') ? 'fa-phone' : 
+                             action.includes('rejeitada') ? 'fa-phone-slash' : 
+                             action.includes('encerrada') ? 'fa-phone-volume' : 'fa-user';
+            
+            historyItem.innerHTML = `
+                <div class="history-icon">
+                    <i class="fas ${iconClass}"></i>
+                </div>
+                <div class="history-content">
+                    <h4>${name}</h4>
+                    <p>${action}</p>
+                </div>
+                <div class="history-time">${time}</div>
+            `;
+            
+            // Inserir no início da lista
+            historyList.insertBefore(historyItem, historyList.firstChild);
+            
+            // Limitar a 10 itens no histórico
+            if (historyList.children.length > 10) {
+                historyList.removeChild(historyList.lastChild);
+            }
+        }
+        
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Falha ao registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
