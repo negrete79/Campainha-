@@ -6,542 +6,188 @@
     <title>Chamando... - Doorvi</title>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/peerjs.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
+            margin: 0;
+            padding: 20px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow: hidden;
         }
-        
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-        
-        .calling-animation {
-            font-size: 4em;
-            margin-bottom: 20px;
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .unit-info {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
             padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 25px;
+            text-align: center;
         }
-        
-        .unit-info h2 {
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
-        
         .status {
-            font-size: 1.2em;
-            margin: 20px 0;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-family: monospace;
         }
-        
-        .loading-dots {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .loading-dots span {
-            width: 8px;
-            height: 8px;
-            background: white;
-            border-radius: 50%;
-            animation: loading 1.4s infinite;
-        }
-        
-        .loading-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        
-        .loading-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        
-        @keyframes loading {
-            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-        
-        .video-container {
-            display: none;
-            margin: 20px 0;
-            width: 100%;
-        }
-        
-        .video-box {
-            background: #000;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4/3;
-            margin-bottom: 15px;
-        }
-        
         video {
             width: 100%;
-            height: 100%;
+            height: 200px;
+            background: #000;
+            border-radius: 10px;
+            margin: 10px 0;
             object-fit: cover;
         }
-        
-        .video-label {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9em;
-        }
-        
-        .controls {
-            display: none;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-        
-        .control-btn {
-            background: rgba(255, 255, 255, 0.2);
+        button {
+            padding: 15px 30px;
             border: none;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .control-btn.active {
+            border-radius: 25px;
             background: #ff6b6b;
-        }
-        
-        .cancel-btn {
-            background: #ff4757;
             color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
             cursor: pointer;
-            margin-top: 20px;
-            font-size: 1em;
-            transition: all 0.3s;
-            width: 100%;
+            font-size: 16px;
+            margin: 10px;
         }
-        
-        .cancel-btn:hover {
-            background: #ff3742;
+        button:hover {
+            background: #ff5252;
         }
-        
-        .connected {
-            display: none;
-            background: rgba(46, 204, 113, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
+        .calling {
+            font-size: 48px;
+            animation: pulse 1.5s infinite;
         }
-        
-        .connected h3 {
-            color: #2ecc71;
-            margin-bottom: 5px;
-        }
-        
-        .visitor-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            display: none;
-        }
-        
-        .visitor-info input {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-        
-        .debug-info {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-family: monospace;
-            font-size: 0.8em;
-            max-height: 100px;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px;
-            }
-            
-            .calling-animation {
-                font-size: 3em;
-            }
-            
-            .unit-info h2 {
-                font-size: 1.3em;
-            }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="calling-animation">📞</div>
+        <div class="calling">📞</div>
+        <h1>Chamando o Morador</h1>
         
-        <div class="unit-info">
-            <h2 id="unitDisplay">Carregando...</h2>
-            <p id="residentDisplay">Carregando...</p>
+        <div class="status" id="statusInfo">
+            Iniciando...
         </div>
         
-        <div class="status" id="status">
-            <p>Iniciando chamada...</p>
-            <div class="loading-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+        <video id="localVideo" autoplay muted></video>
+        <video id="remoteVideo" autoplay></video>
+        
+        <button onclick="startCall()">📞 Iniciar Chamada</button>
+        <button onclick="endCall()">❌ Desligar</button>
+        
+        <div class="status" id="debugLog">
+            Log de eventos...
         </div>
-        
-        <div class="connected" id="connected">
-            <h3>✅ Chamada Conectada!</h3>
-            <p>Você está em chamada de vídeo com oador</p>
-        </div>
-        
-        <div class="visitor-info" id="visitorInfo">
-            <p style="margin-bottom: 10px;">Informações para o morador (opcional):</p>
-            <input type="text" id="visitorName" placeholder="Seu nome" value="Visitante">
-            <input type="text" id="visitorReason" placeholder="Motivo da visita" value="Visita">
-        </div>
-        
-        <div class="video-container" id="videoContainer">
-            <div class="video-box">
-                <video id="localVideo" autoplay muted playsinline></video>
-                <div class="video-label">Você</div>
-            </div>
-            <div class="video-box">
-                <video id="remoteVideo" autoplay playsinline></video>
-                <div class="video-label">Morador</div>
-            </div>
-        </div>
-        
-        <div class="controls" id="controls">
-            <button class="control-btn" id="muteBtn">🔇</button>
-            <button class="control-btn" id="videoBtn">📹</button>
-            <button class="control-btn" id="switchCameraBtn">🔄</button>
-        </div>
-        
-        <button class="cancel-btn" id="cancelBtn">❌ Cancelar Chamada</button>
-        
-        <div class="debug-info" id="debugInfo"></div>
     </div>
 
     <script>
-        // Configuração
+        // Variáveis globais
         let localStream;
         let remoteStream;
         let currentCall;
         let peer;
-        let isMuted = false;
-        let isVideoOff = false;
-        let facingMode = 'user';
-        let callAttempted = false;
         
-        // Elementos da UI
-        const status = document.getElementById('status');
-        const videoContainer = document.getElementById('videoContainer');
-        const controls = document.getElementById('controls');
-        const connected = document.getElementById('connected');
-        const visitorInfo = document.getElementById('visitorInfo');
+        // Elementos
+        const statusInfo = document.getElementById('statusInfo');
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
-        const muteBtn = document.getElementById('muteBtn');
-        const videoBtn = document.getElementById('videoBtn');
-        const switchCameraBtn = document.getElementById('switchCameraBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const debugInfo = document.getElementById('debugInfo');
+        const debugLog = document.getElementById('debugLog');
         
-        // Obter parâmetros da URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const unitId = urlParams.get('unit') || 'Unidade Desconhecida';
-        const residentName = urlParams.get('resident') || 'Morador';
+        // ID do morador (DEVE SER O MESMO DO ARQUIVO morador.html)
+        const MORADOR_ID = "MORADOR_APT_101";
         
-        // Atualizar informações da unidade
-        document.getElementById('unitDisplay').textContent = unitId;
-        document.getElementById('residentDisplay').textContent = residentName;
-        
-        // Função de log para depuração
+        // Função de log
         function log(message) {
-            console.log('[Doorvi Visitante]', message);
-            if (debugInfo) {
-                debugInfo.textContent += message + '\n';
-                debugInfo.scrollTop = debugInfo.scrollHeight;
-            }
+            console.log('[VISITANTE]', message);
+            debugLog.innerHTML += '<br>' + message;
+            debugLog.scrollTop = debugLog.scrollHeight;
         }
-        
-        // Iniciar chamada automaticamente
-        window.addEventListener('load', () => {
-            log('Página carregada');
-            setTimeout(() => {
-                if (!callAttempted) {
-                    log('Iniciando chamada automaticamente');
-                    startCall();
-                }
-            }, 1000);
-        });
         
         // Iniciar chamada
         async function startCall() {
-            callAttempted = true;
-            
             try {
-                status.innerHTML = `
-                    <p>📹 Acessando câmera...</p>
-                    <div class="loading-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                `;
+                log('🚀 Iniciando chamada...');
+                statusInfo.innerHTML = '📹 Acessando câmera...';
                 
-                // Obter mídia local
-                log('Solicitando acesso à câmera e microfone...');
+                // Obter câmera
                 localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: facingMode }, 
+                    video: true, 
                     audio: true 
                 });
-                
                 localVideo.srcObject = localStream;
-                log('Câmera e microfone acessados com sucesso');
+                log('✅ Câmera acessada');
                 
-                status.innerHTML = `
-                    <p>🔔 Chamando o morador...</p>
-                    <div class="loading-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                `;
-                
-                // Mostrar informações do visitante
-                visitorInfo.style.display = 'block';
-                
-                // Inicializar PeerJS
-                log('Inicializando PeerJS...');
+                // Conectar ao PeerJS
+                statusInfo.innerHTML = '🔗 Conectando ao servidor...';
                 peer = new Peer({
                     debug: 2,
                     config: {
                         iceServers: [
-                            { url: 'stun:stun.l.google.com:19302' },
-                            { url: 'stun:stun1.l.google.com:19302' },
-                            { url: 'stun:stun2.l.google.com:19302' }
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' }
                         ]
                     }
                 });
                 
                 peer.on('open', (id) => {
-                    log(`PeerJS conectado com ID: ${id}`);
+                    log(`✅ Conectado! Meu ID: ${id}`);
+                    statusInfo.innerHTML = '📞 Chamando morador...';
                     
-                    // Chamar o morador diretamente pelo unitId
-                    log(`Tentando chamar morador com ID: ${unitId}`);
-                    
-                    // Verificar se o morador está disponível
-                    const call = peer.call(unitId, localStream);
+                    // Fazer a chamada
+                    log(`📞 Ligando para: ${MORADOR_ID}`);
+                    const call = peer.call(MORADOR_ID, localStream);
                     
                     if (!call) {
-                        log('Falha ao criar chamada');
-                        status.innerHTML = `
-                            <p>❌ Não foi possível criar a chamada</p>
-                            <p style="font-size: 0.9em; opacity: 0.8;">Verifique se o morador está online</p>
-                        `;
+                        log('❌ Falha ao criar chamada');
+                        statusInfo.innerHTML = '❌ Falha ao criar chamada';
                         return;
                     }
                     
+                    currentCall = call;
+                    
                     call.on('stream', (stream) => {
-                        log('Stream do morador recebido');
+                        log('📹 Recebendo vídeo do morador!');
                         remoteVideo.srcObject = stream;
-                        showCallConnected();
+                        statusInfo.innerHTML = '✅ Chamada conectada!';
                     });
                     
                     call.on('close', () => {
-                        log('Chamada encerrada pelo morador');
+                        log('📞 Chamada encerrada pelo morador');
                         endCall();
                     });
                     
                     call.on('error', (err) => {
-                        log('Erro na chamada: ' + err.message);
-                        status.innerHTML = `
-                            <p>❌ Morador indisponível</p>
-                            <p style="font-size: 0.9em; opacity: 0.8;">Verifique se o morador está online</p>
-                        `;
+                        log(`❌ Erro na chamada: ${err.message}`);
+                        statusInfo.innerHTML = `❌ Erro: ${err.message}`;
                     });
                     
-                    currentCall = call;
-                    
-                    // Timeout caso o morador não atenda
+                    // Timeout de 30 segundos
                     setTimeout(() => {
                         if (!remoteVideo.srcObject) {
-                            log('Timeout - morador não atendeu');
-                            status.innerHTML = `
-                                <p>⏱️ Tempo esgotado</p>
-                                <p style="font-size: 0.9em; opacity: 0.8;">O morador não atendeu</p>
-                            `;
+                            log('⏰ Tempo esgotado');
+                            statusInfo.innerHTML = '⏰ Morador não atendeu';
                         }
                     }, 30000);
                 });
                 
                 peer.on('error', (err) => {
-                    log('Erro no PeerJS: ' + err.message);
-                    status.innerHTML = `
-                        <p>❌ Erro de conexão</p>
-                        <p style="font-size: 0.9em; opacity: 0.8;">Tente novamente</p>
-                    `;
+                    log(`❌ Erro no Peer: ${err.message}`);
+                    statusInfo.innerHTML = `❌ Erro: ${err.message}`;
                 });
                 
             } catch (err) {
-                log('Erro ao iniciar chamada: ' + err.message);
-                status.innerHTML = `
-                    <p>❌ Erro ao acessar câmera</p>
-                    <p style="font-size: 0.9em; opacity: 0.8;">Verifique as permissões do navegador</p>
-                `;
+                log(`❌ Erro: ${err.message}`);
+                statusInfo.innerHTML = `❌ Erro: ${err.message}`;
             }
         }
-        
-        // Mostrar chamada conectada
-        function showCallConnected() {
-            log('Chamada conectada com sucesso');
-            status.style.display = 'none';
-            connected.style.display = 'block';
-            videoContainer.style.display = 'block';
-            controls.style.display = 'flex';
-            visitorInfo.style.display = 'none';
-            
-            // Enviar informações do visitante (simulação)
-            const visitorName = document.getElementById('visitorName').value;
-            const visitorReason = document.getElementById('visitorReason').value;
-            log(`Dados do visitante: Nome=${visitorName}, Motivo=${visitorReason}`);
-            
-            // Auto-esconder mensagem após 3 segundos
-            setTimeout(() => {
-                connected.style.display = 'none';
-            }, 3000);
-        }
-        
-        // Controles
-        muteBtn.addEventListener('click', () => {
-            isMuted = !isMuted;
-            if (localStream) {
-                localStream.getAudioTracks().forEach(track => {
-                    track.enabled = !isMuted;
-                });
-            }
-            muteBtn.classList.toggle('active', isMuted);
-            muteBtn.textContent = isMuted ? '🔊' : '🔇';
-            log('Áudio ' + (isMuted ? 'desligado' : 'ligado'));
-        });
-        
-        videoBtn.addEventListener('click', () => {
-            isVideoOff = !isVideoOff;
-            if (localStream) {
-                localStream.getVideoTracks().forEach(track => {
-                    track.enabled = !isVideoOff;
-                });
-            }
-            videoBtn.classList.toggle('active', isVideoOff);
-            videoBtn.textContent = isVideoOff ? '📹' : '📹';
-            log('Vídeo ' + (isVideoOff ? 'desligado' : 'ligado'));
-        });
-        
-        switchCameraBtn.addEventListener('click', async () => {
-            log('Trocando câmera...');
-            facingMode = facingMode === 'user' ? 'environment' : 'user';
-            
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-            }
-            
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: facingMode }, 
-                    audio: true 
-                });
-                localVideo.srcObject = localStream;
-                
-                // Atualizar track na chamada atual
-                if (currentCall) {
-                    const sender = currentCall.peerConnection.getSenders().find(s => 
-                        s.track && s.track.kind === 'video'
-                    );
-                    if (sender) {
-                        sender.replaceTrack(localStream.getVideoTracks()[0]);
-                    }
-                }
-                log('Câmera trocada com sucesso');
-            } catch (err) {
-                log('Erro ao trocar câmera: ' + err.message);
-                facingMode = facingMode === 'user' ? 'environment' : 'user';
-            }
-        });
-        
-        // Cancelar chamada
-        cancelBtn.addEventListener('click', () => {
-            log('Botão Cancelar clicado');
-            if (confirm('Deseja cancelar a chamada?')) {
-                endCall();
-            }
-        });
         
         // Encerrar chamada
         function endCall() {
-            log('Encerrando chamada...');
+            log('📞 Encerrando chamada');
             
             if (currentCall) {
                 currentCall.close();
@@ -556,26 +202,15 @@
                 peer.destroy();
             }
             
-            // Resetar UI
-            status.innerHTML = '<p>📞 Chamada encerrada</p>';
-            status.style.display = 'flex';
-            videoContainer.style.display = 'none';
-            controls.style.display = 'none';
-            connected.style.display = 'none';
-            visitorInfo.style.display = 'none';
-            
-            // Redirecionar após 3 segundos
-            setTimeout(() => {
-                window.location.reload();
-            }, 3000);
+            localVideo.srcObject = null;
+            remoteVideo.srcObject = null;
+            statusInfo.innerHTML = '📞 Chamada encerrada';
         }
         
-        // Prevenir fechamento acidental
-        window.addEventListener('beforeunload', (e) => {
-            if (currentCall) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
+        // Iniciar automaticamente
+        window.addEventListener('load', () => {
+            log('📱 Página carregada');
+            statusInfo.innerHTML = 'Clique em "Iniciar Chamada"';
         });
     </script>
 </body>
