@@ -106,6 +106,13 @@
             cursor: pointer;
         }
         
+        .notification-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
         .call-container {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -395,6 +402,11 @@
                 flex-direction: column;
                 gap: 10px;
             }
+            
+            .notification-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -435,6 +447,12 @@
             <h3>🔔 Alguém está na sua porta!</h3>
             <p>Visitante aguardando atendimento</p>
             <button class="notification-sound" onclick="playNotificationSound()">🔊 Tocar Novamente</button>
+            
+            <div class="notification-buttons">
+                <button class="action-btn accept-btn" id="notificationAcceptBtn">✅ Atender</button>
+                <button class="action-btn reject-btn" id="notificationRejectBtn">❌ Recusar</button>
+            </div>
+            
             <div class="debug-info" id="debugInfo"></div>
         </div>
         
@@ -481,8 +499,7 @@
             </div>
             
             <div class="action-buttons">
-                <button class="action-btn accept-btn" id="acceptBtn">✅ Atender</button>
-                <button class="action-btn reject-btn" id="rejectBtn">❌ Recusar</button>
+                <button class="action-btn reject-btn" id="rejectBtn">❌ Encerrar Chamada</button>
                 <button class="action-btn unlock-btn" id="unlockBtn">🔓 Abrir Porta</button>
             </div>
         </div>
@@ -525,8 +542,9 @@
         const callContainer = document.getElementById('callContainer');
         const waitingScreen = document.getElementById('waitingScreen');
         const remoteVideo = document.getElementById('remoteVideo');
-        const acceptBtn = document.getElementById('acceptBtn');
-        const rejectBtn = document.getElementById('rejectBtn');
+        const acceptBtn = document.getElementById('notificationAcceptBtn');
+        const rejectBtn = document.getElementById('notificationRejectBtn');
+        const endCallBtn = document.getElementById('rejectBtn');
         const unlockBtn = document.getElementById('unlockBtn');
         const muteBtn = document.getElementById('muteBtn');
         const recordBtn = document.getElementById('recordBtn');
@@ -699,7 +717,7 @@
                 // Salvar referência da chamada
                 currentCall = call;
                 
-                // Configurar botões
+                // Configurar botões da notificação
                 acceptBtn.onclick = () => {
                     log('✅ Atendendo chamada');
                     
@@ -871,6 +889,14 @@
                 remoteVideo.msRequestFullscreen();
             }
             log('🔍 Tela cheia ativada');
+        });
+        
+        // Botão para encerrar chamada durante a conversa
+        endCallBtn.addEventListener('click', () => {
+            if (currentCall) {
+                currentCall.close();
+            }
+            endCall();
         });
         
         unlockBtn.addEventListener('click', () => {
