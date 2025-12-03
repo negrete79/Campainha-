@@ -183,6 +183,27 @@
             font-size: 0.9em;
         }
         
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            z-index: 10;
+        }
+        
+        .video-placeholder-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+        
         .controls {
             display: flex;
             justify-content: center;
@@ -382,6 +403,26 @@
             opacity: 0.8;
         }
         
+        .connection-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        .status-connected {
+            background: rgba(46, 204, 113, 0.3);
+        }
+        
+        .status-connecting {
+            background: rgba(241, 196, 15, 0.3);
+        }
+        
+        .status-error {
+            background: rgba(231, 76, 60, 0.3);
+        }
+        
         @media (max-width: 768px) {
             .controls {
                 flex-direction: column;
@@ -426,6 +467,7 @@
             <div class="online-indicator">
                 <div class="online-dot"></div>
                 <span id="connectionStatus">Conectando...</span>
+                <span id="connectionStatusBadge" class="connection-status status-connecting">Conectando</span>
             </div>
             <div>
                 <strong>Unidade:</strong> <span id="unitId">APT-101</span>
@@ -480,6 +522,10 @@
                 <div class="video-box">
                     <video id="remoteVideo" autoplay playsinline></video>
                     <div class="video-label">Visitante</div>
+                    <div class="video-placeholder" id="videoPlaceholder">
+                        <div class="video-placeholder-icon">📹</div>
+                        <p>Aguardando vídeo...</p>
+                    </div>
                 </div>
             </div>
             
@@ -521,6 +567,8 @@
         function checkPeerJS() {
             if (typeof Peer === 'undefined') {
                 document.getElementById('connectionStatus').textContent = '❌ Erro: Biblioteca não carregada';
+                document.getElementById('connectionStatusBadge').textContent = 'Erro';
+                document.getElementById('connectionStatusBadge').className = 'connection-status status-error';
                 return false;
             }
             return true;
@@ -542,6 +590,7 @@
         const callContainer = document.getElementById('callContainer');
         const waitingScreen = document.getElementById('waitingScreen');
         const remoteVideo = document.getElementById('remoteVideo');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
         const acceptBtn = document.getElementById('notificationAcceptBtn');
         const rejectBtn = document.getElementById('notificationRejectBtn');
         const endCallBtn = document.getElementById('rejectBtn');
@@ -554,6 +603,7 @@
         const clearHistoryBtn = document.getElementById('clearHistoryBtn');
         const unitIdSpan = document.getElementById('unitId');
         const connectionStatus = document.getElementById('connectionStatus');
+        const connectionStatusBadge = document.getElementById('connectionStatusBadge');
         const peerIdDisplay = document.getElementById('peerIdDisplay');
         const debugInfo = document.getElementById('debugInfo');
         
@@ -578,6 +628,7 @@
                     await Notification.requestPermission();
                 }
                 notificationPermission = Notification.permission === 'granted';
+                log('Permissão de notificação: ' + Notification.permission);
             }
         }
         
@@ -592,6 +643,7 @@
                     renotify: true,
                     requireInteraction: true
                 });
+                log('Notificação do sistema exibida');
             }
         }
         
@@ -617,12 +669,14 @@
                     oscillator.stop(audioContext.currentTime + 0.3);
                 }, i * 600); // Tocar a cada 600ms
             }
+            log('Som de notificação tocado');
         }
         
         // Tocar continuamente até atender
         function startRinging() {
             playNotificationSound();
             notificationInterval = setInterval(playNotificationSound, 4000); // Repetir a cada 4 segundos
+            log('Iniciando toque de telefone');
         }
         
         // Parar de tocar
@@ -630,6 +684,7 @@
             if (notificationInterval) {
                 clearInterval(notificationInterval);
                 notificationInterval = null;
+                log('Parando toque de telefone');
             }
         }
         
@@ -664,10 +719,12 @@
                     audio: true 
                 });
                 log('Microfone acessado com sucesso');
+                return true;
             } catch (err) {
                 console.error('Erro ao acessar microfone:', err);
                 alert('Não foi possível acessar o microfone. Verifique as permissões.');
                 log('Erro ao acessar microfone: ' + err.message);
+                return false;
             }
         }
         
@@ -681,7 +738,9 @@
                     iceServers: [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' }
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' }
                     ]
                 }
             });
@@ -689,6 +748,8 @@
             peer.on('open', (id) => {
                 log(`✅ Conectado! ID: ${id}`);
                 connectionStatus.textContent = '✅ Online';
+                connectionStatusBadge.textContent = 'Online';
+                connectionStatusBadge.className = 'connection-status status-connected';
                 peerIdDisplay.textContent = id;
                 
                 // Gerar QR code após conexão
@@ -698,6 +759,28 @@
             peer.on('error', (err) => {
                 log(`❌ Erro: ${err.type} - ${err.message}`);
                 connectionStatus.textContent = '❌ Erro de conexão';
+                connectionStatusBadge.textContent = 'Erro';
+                connectionStatusBadge.className = 'connection-status status-error';
+            });
+            
+            peer.on('disconnected', () => {
+                log('❌ Desconectado do servidor PeerJS');
+                connectionStatus.textContent = '❌ Desconectado';
+                connectionStatusBadge.textContent = 'Desconectado';
+                connectionStatusBadge.className = 'connection-status status-error';
+                
+                // Tentar reconectar
+                setTimeout(() => {
+                    log('Tentando reconectar...');
+                    peer.reconnect();
+                }, 3000);
+            });
+            
+            peer.on('close', () => {
+                log('❌ Conexão fechada');
+                connectionStatus.textContent = '❌ Desconectado';
+                connectionStatusBadge.textContent = 'Desconectado';
+                connectionStatusBadge.className = 'connection-status status-error';
             });
             
             // Receber chamada
@@ -734,9 +817,34 @@
                     call.answer(localStream);
                     
                     // Receber stream do visitante (vídeo e áudio)
-                    call.on('stream', (remoteStream) => {
-                        log('📹 Recebendo vídeo do visitante');
-                        remoteVideo.srcObject = remoteStream;
+                    call.on('stream', (stream) => {
+                        log('📹 Recebendo stream do visitante');
+                        
+                        // Verificar se o stream tem vídeo
+                        const videoTracks = stream.getVideoTracks();
+                        if (videoTracks.length > 0) {
+                            log(`✅ Stream contém ${videoTracks.length} track(s) de vídeo`);
+                            
+                            // Configurar o vídeo remoto
+                            remoteVideo.srcObject = stream;
+                            
+                            // Esconder placeholder quando o vídeo começar
+                            remoteVideo.onloadedmetadata = () => {
+                                log('📹 Metadados do vídeo carregados');
+                                videoPlaceholder.style.display = 'none';
+                            };
+                            
+                            // Lidar com erros de vídeo
+                            remoteVideo.onerror = (e) => {
+                                log('❌ Erro no elemento de vídeo: ' + e);
+                            };
+                        } else {
+                            log('⚠️ Stream não contém tracks de vídeo');
+                            videoPlaceholder.innerHTML = `
+                                <div class="video-placeholder-icon">📵</div>
+                                <p>Vídeo não disponível</p>
+                            `;
+                        }
                         
                         // Adicionar ao histórico
                         addToHistory();
@@ -745,6 +853,12 @@
                     // Quando a chamada for encerrada
                     call.on('close', () => {
                         log('📞 Chamada encerrada');
+                        endCall();
+                    });
+                    
+                    // Tratar erros na chamada
+                    call.on('error', (err) => {
+                        log(`❌ Erro na chamada: ${err.message}`);
                         endCall();
                     });
                 };
@@ -827,11 +941,23 @@
         
         // Encerrar chamada
         function endCall() {
+            log('Encerrando chamada');
+            
             // Parar todos os streams
             if (remoteVideo.srcObject) {
-                remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+                remoteVideo.srcObject.getTracks().forEach(track => {
+                    track.stop();
+                    log('Parando track: ' + track.kind);
+                });
                 remoteVideo.srcObject = null;
             }
+            
+            // Mostrar placeholder novamente
+            videoPlaceholder.style.display = 'flex';
+            videoPlaceholder.innerHTML = `
+                <div class="video-placeholder-icon">📹</div>
+                <p>Aguardando vídeo...</p>
+            `;
             
             // Esconder container da chamada
             callContainer.style.display = 'none';
@@ -865,6 +991,11 @@
         });
         
         screenshotBtn.addEventListener('click', () => {
+            if (!remoteVideo.srcObject) {
+                log('❌ Nenhum vídeo disponível para capturar');
+                return;
+            }
+            
             const canvas = document.createElement('canvas');
             canvas.width = remoteVideo.videoWidth;
             canvas.height = remoteVideo.videoHeight;
@@ -924,7 +1055,10 @@
             await requestNotificationPermission();
             
             // Inicializar microfone
-            await initLocalCamera();
+            const cameraInitialized = await initLocalCamera();
+            if (!cameraInitialized) {
+                return;
+            }
             
             // Inicializar Peer
             initPeer();
