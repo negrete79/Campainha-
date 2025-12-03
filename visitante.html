@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chamando... - Doorvi</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e3c72">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Doorvi Visitante">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .calling-animation {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .unit-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .unit-info h2 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        
+        .status {
+            font-size: 1.2em;
+            margin: 20px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .loading-dots {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: loading 1.4s infinite;
+        }
+        
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes loading {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        .video-container {
+            display: none;
+            margin: 20px 0;
+            width: 100%;
+        }
+        
+        .video-box {
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            margin-bottom: 15px;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        
+        .controls {
+            display: none;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .control-btn.active {
+            background: #ff6b6b;
+        }
+        
+        .cancel-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1em;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .cancel-btn:hover {
+            background: #ff3742;
+        }
+        
+        .connected {
+            display: none;
+            background: rgba(46, 204, 113, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .connected h3 {
+            color: #2ecc71;
+            margin-bottom: 5px;
+        }
+        
+        .visitor-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .visitor-info input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        .debug-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 0.8em;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        
+        .network-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .install-banner {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        
+        .install-banner.show {
+            display: flex;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .calling-animation {
+                font-size: 3em;
+            }
+            
+            .unit-info h2 {
+                font-size: 1.3em;
+            }
+            
+            .install-banner {
+                left: 20px;
+                right: 20px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calling-animation">📞</div>
+        
+        <div class="unit-info">
+            <h2 id="unitDisplay">Carregando...</h2>
+            <p id="residentDisplay">Carregando...</p>
+        </div>
+        
+        <div class="network-info">
+            <strong>🌐 Funciona em qualquer rede!</strong><br>
+            Não precisa estar na mesma Wi-Fi - funciona via internet
+        </div>
+        
+        <div class="status" id="status">
+            <p>Iniciando chamada...</p>
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="connected" id="connected">
+            <h3>✅ Chamada Conectada!</h3>
+            <p>Fale com o morador</p>
+        </div>
+        
+        <div class="visitor-info" id="visitorInfo">
+            <p style="margin-bottom: 10px;">Informações para o morador (opcional):</p>
+            <input type="text" id="visitorName" placeholder="Seu nome" value="Visitante">
+            <input type="text" id="visitorReason" placeholder="Motivo da visita" value="Visita">
+        </div>
+        
+        <div class="video-container" id="videoContainer">
+            <div class="video-box">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div class="video-label">Você</div>
+            </div>
+            <div class="video-box">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div class="video-label">Morador</div>
+            </div>
+        </div>
+        
+        <div class="controls" id="controls">
+            <button class="control-btn" id="muteBtn">🔇</button>
+            <button class="control-btn" id="videoBtn">📹</button>
+            <button class="control-btn" id="switchCameraBtn">🔄</button>
+        </div>
+        
+        <button class="cancel-btn" id="cancelBtn">❌ Cancelar Chamada</button>
+        
+        <div class="debug-info" id="debugInfo"></div>
+    </div>
+
+    <!-- Banner de instalação PWA -->
+    <div id="installBanner" class="install-banner">
+        <span>📱 Instalar Doorvi</span>
+        <span>❌</span>
+    </div>
+
+    <script>
+        // Verificar se PeerJS foi carregado
+        function checkPeerJS() {
+            if (typeof Peer === 'undefined') {
+                document.getElementById('status').innerHTML = '<p>❌ Erro: Biblioteca não carregada</p><p>Recarregue a página</p>';
+                return false;
+            }
+            return true;
+        }
+        
+        // Configuração
+        let localStream;
+        let remoteStream;
+        let currentCall;
+        let peer;
+        let isMuted = false;
+        let isVideoOff = false;
+        let facingMode = 'user';
+        let callAttempted = false;
+        
+        // Elementos da UI
+        const status = document.getElementById('status');
+        const videoContainer = document.getElementById('videoContainer');
+        const controls = document.getElementById('controls');
+        const connected = document.getElementById('connected');
+        const visitorInfo = document.getElementById('visitorInfo');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const muteBtn = document.getElementById('muteBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const debugInfo = document.getElementById('debugInfo');
+        
+        // Obter parâmetros da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const unitId = urlParams.get('unit') || 'Unidade Desconhecida';
+        const residentName = urlParams.get('resident') || 'Morador';
+        
+        // Atualizar informações da unidade
+        document.getElementById('unitDisplay').textContent = unitId;
+        document.getElementById('residentDisplay').textContent = residentName;
+        
+        // Função de log para depuração
+        function log(message) {
+            console.log('[Doorvi Visitante]', message);
+            if (debugInfo) {
+                debugInfo.textContent += message + '\n';
+                debugInfo.scrollTop = debugInfo.scrollHeight;
+            }
+        }
+        
+        // Iniciar chamada automaticamente
+        window.addEventListener('load', () => {
+            log('Página carregada');
+            
+            // Registrar Service Worker para PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Falha ao registrar Service Worker:', error);
+                    });
+            }
+            
+            // Configurar banner de instalação PWA
+            let deferredPrompt;
+            const installBanner = document.getElementById('installBanner');
+            
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBanner.classList.add('show');
+            });
+            
+            installBanner.addEventListener('click', () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('Usuário aceitou a instalação');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+                installBanner.classList.remove('show');
+            });
+            
+            // Verificar se PeerJS foi carregado
+            if (!checkPeerJS()) {
+                log('PeerJS não está disponível');
+                return;
+            }
+            
+            setTimeout(() => {
+                if (!callAttempted) {
+                    log('Iniciando chamada automaticamente');
+                    startCall();
+                }
+            }, 1000);
+        });
+        
+        // Iniciar chamada
+        async function startCall() {
+            callAttempted = true;
+            
+            try {
+                status.innerHTML = `
+                    <p>📱 Acessando câmera e microfone...</p>
+                    <div class="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                `;
+                
+                // Obter mídia local - vídeo e áudio (visitante envia ambos)
+                log('Solicitando acesso à câmera e microfone...');
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: facingMode },  // Visitante envia vídeo
+                    audio: true 
+                });
+                localVideo.srcObject = localStream;
+                log('Câmera e microfone acessados com sucesso');
+                
+                status.innerHTML = `
+                    <p>🔔 Chamando o morador...</p>
+                    <div class="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                `;
+                
+                // Mostrar informações do visitante
+                visitorInfo.style.display = 'block';
+                
+                // Inicializar PeerJS
+                log('Inicializando PeerJS...');
+                peer = new Peer({
+                    debug: 2,
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' },
+                            { urls: 'stun:stun2.l.google.com:19302' }
+                        ]
+                    }
+                });
+                
+                peer.on('open', (id) => {
+                    log(`PeerJS conectado com ID: ${id}`);
+                    
+                    // Chamar o morador diretamente pelo unitId
+                    log(`Tentando chamar morador com ID: ${unitId}`);
+                    
+                    // Verificar se o morador está disponível
+                    const call = peer.call(unitId, localStream);
+                    
+                    if (!call) {
+                        log('Falha ao criar chamada');
+                        status.innerHTML = `
+                            <p>❌ Não foi possível criar a chamada</p>
+                            <p style="font-size: 0.9em; opacity: 0.8;">Verifique se o morador está online</p>
+                        `;
+                        return;
+                    }
+                    
+                    call.on('stream', (stream) => {
+                        log('Stream do morador recebido');
+                        remoteVideo.srcObject = stream;
+                        showCallConnected();
+                    });
+                    
+                    call.on('close', () => {
+                        log('Chamada encerrada pelo morador');
+                        endCallImmediately();
+                    });
+                    
+                    call.on('error', (err) => {
+                        log('Erro na chamada: ' + err.message);
+                        status.innerHTML = `
+                            <p>❌ Morador indisponível</p>
+                            <p style="font-size: 0.9em; opacity: 0.8;">Verifique se o morador está online</p>
+                        `;
+                    });
+                    
+                    currentCall = call;
+                    
+                    // Timeout caso o morador não atenda
+                    setTimeout(() => {
+                        if (!remoteVideo.srcObject) {
+                            log('Timeout - morador não atendeu');
+                            status.innerHTML = `
+                                <p>⏱️ Tempo esgotado</p>
+                                <p style="font-size: 0.9em; opacity: 0.8;">O morador não atendeu</p>
+                            `;
+                        }
+                    }, 30000);
+                });
+                
+                peer.on('error', (err) => {
+                    log('Erro no PeerJS: ' + err.message);
+                    status.innerHTML = `
+                        <p>❌ Erro de conexão</p>
+                        <p style="font-size: 0.9em; opacity: 0.8;">Tente novamente</p>
+                    `;
+                });
+                
+            } catch (err) {
+                log('Erro ao iniciar chamada: ' + err.message);
+                status.innerHTML = `
+                    <p>❌ Erro ao acessar câmera</p>
+                    <p style="font-size: 0.9em; opacity: 0.8;">Verifique as permissões do navegador</p>
+                `;
+            }
+        }
+        
+        // Mostrar chamada conectada
+        function showCallConnected() {
+            log('Chamada conectada com sucesso');
+            status.style.display = 'none';
+            connected.style.display = 'block';
+            videoContainer.style.display = 'block';
+            controls.style.display = 'flex';
+            visitorInfo.style.display = 'none';
+            
+            // Enviar informações do visitante (simulação)
+            const visitorName = document.getElementById('visitorName').value;
+            const visitorReason = document.getElementById('visitorReason').value;
+            log(`Dados do visitante: Nome=${visitorName}, Motivo=${visitorReason}`);
+            
+            // Tocar som de conexão em volume alto
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 600;
+                gainNode.gain.value = 0.7; // Volume alto
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.5);
+                
+                // Vibração para dispositivos móveis
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([200, 100, 200]);
+                }
+            } catch (e) {
+                log('Erro ao tocar som de conexão: ' + e.message);
+            }
+            
+            // Auto-esconder mensagem após 3 segundos
+            setTimeout(() => {
+                connected.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Controles
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => {
+                    track.enabled = !isMuted;
+                });
+            }
+            muteBtn.classList.toggle('active', isMuted);
+            muteBtn.textContent = isMuted ? '🔊' : '🔇';
+            log('Áudio ' + (isMuted ? 'desligado' : 'ligado'));
+        });
+        
+        videoBtn.addEventListener('click', () => {
+            isVideoOff = !isVideoOff;
+            if (localStream) {
+                localStream.getVideoTracks().forEach(track => {
+                    track.enabled = !isVideoOff;
+                });
+            }
+            videoBtn.classList.toggle('active', isVideoOff);
+            videoBtn.textContent = isVideoOff ? '📹' : '📹';
+            log('Vídeo ' + (isVideoOff ? 'desligado' : 'ligado'));
+        });
+        
+        switchCameraBtn.addEventListener('click', async () => {
+            log('Trocando câmera...');
+            facingMode = facingMode === 'user' ? 'environment' : 'user';
+            
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: facingMode }, 
+                    audio: true 
+                });
+                localVideo.srcObject = localStream;
+                
+                // Atualizar track na chamada atual
+                if (currentCall) {
+                    const sender = currentCall.peerConnection.getSenders().find(s => 
+                        s.track && s.track.kind === 'video'
+                    );
+                    if (sender) {
+                        sender.replaceTrack(localStream.getVideoTracks()[0]);
+                    }
+                }
+                log('Câmera trocada com sucesso');
+            } catch (err) {
+                log('Erro ao trocar câmera: ' + err.message);
+                facingMode = facingMode === 'user' ? 'environment' : 'user';
+            }
+        });
+        
+        // Cancelar chamada
+        cancelBtn.addEventListener('click', () => {
+            log('Botão Cancelar clicado');
+            if (confirm('Deseja cancelar a chamada?')) {
+                endCallImmediately();
+            }
+        });
+        
+        // Encerrar chamada imediatamente
+        function endCallImmediately() {
+            log('Encerrando chamada imediatamente...');
+            
+            // Parar todos os streams
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    track.stop();
+                    log('Parando track: ' + track.kind);
+                });
+            }
+            
+            // Fechar chamada
+            if (currentCall) {
+                currentCall.close();
+                log('Chamada fechada');
+                currentCall = null;
+            }
+            
+            // Destruir peer
+            if (peer) {
+                peer.destroy();
+                log('Peer destruído');
+                peer = null;
+            }
+            
+            // Limpar UI
+            status.style.display = 'block';
+            status.innerHTML = `
+                <p>📞 Chamada encerrada</p>
+                <p style="font-size: 0.9em; opacity: 0.8;">Obrigado pela visita</p>
+            `;
+            connected.style.display = 'none';
+            videoContainer.style.display = 'none';
+            controls.style.display = 'none';
+            
+            // Limpar vídeos
+            if (localVideo.srcObject) {
+                localVideo.srcObject = null;
+            }
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject = null;
+            }
+            
+            // Desabilitar botão cancelar
+            cancelBtn.disabled = true;
+            cancelBtn.textContent = 'Chamada Encerrada';
+            
+            // Redirecionar após 3 segundos
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

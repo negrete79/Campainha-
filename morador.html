@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Morador - Doorvi</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e3c72">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Doorvi Morador">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .notification {
+            background: #e74c3c;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        .notification-buttons {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-accept {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .btn-accept:hover {
+            background: #27ae60;
+        }
+        
+        .btn-reject {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-reject:hover {
+            background: #c0392b;
+        }
+        
+        .btn-end {
+            background: #e74c3c;
+            color: white;
+            margin-top: 15px;
+        }
+        
+        .btn-end:hover {
+            background: #c0392b;
+        }
+        
+        .video-container {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .video-box {
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            aspect-ratio: 16/9;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .waiting {
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .waiting-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        .debug {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        
+        .qr-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .qr-code {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 15px 0;
+        }
+        
+        .install-banner {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        
+        .install-banner.show {
+            display: flex;
+        }
+        
+        @media (max-width: 768px) {
+            .install-banner {
+                left: 20px;
+                right: 20px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Painel do Morador</h1>
+        
+        <div class="status">
+            <div>Status: <span id="connectionStatus">Conectando...</span></div>
+            <div>Unidade: <span id="unitId">APT-101</span></div>
+            <div>ID: <span id="peerId">--</span></div>
+        </div>
+        
+        <div class="qr-section">
+            <h3>QR Code da Sua Campainha</h3>
+            <div class="qr-code" id="qrCode"></div>
+            <button class="btn" onclick="window.open('index.html', '_blank')">Gerar Novo QR Code</button>
+        </div>
+        
+        <div class="notification" id="notification">
+            <h3>🔔 Alguém está na sua porta!</h3>
+            <p>Visitante aguardando atendimento</p>
+            
+            <div class="notification-buttons">
+                <button class="btn btn-accept" id="acceptBtn">✅ Atender</button>
+                <button class="btn btn-reject" id="rejectBtn">❌ Recusar</button>
+            </div>
+            
+            <div class="debug" id="debugInfo"></div>
+        </div>
+        
+        <div class="waiting" id="waitingScreen">
+            <div class="waiting-icon">🏠</div>
+            <h2>Aguardando Visitas</h2>
+            <p>O sistema está online e aguardando chamadas</p>
+        </div>
+        
+        <div class="video-container" id="videoContainer">
+            <div class="video-box">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div class="video-label">Visitante</div>
+            </div>
+            <button class="btn btn-end" id="endCallBtn">❌ Encerrar Chamada</button>
+        </div>
+        
+        <div class="debug" id="globalDebug"></div>
+    </div>
+
+    <!-- Banner de instalação PWA -->
+    <div id="installBanner" class="install-banner">
+        <span>📱 Instalar Doorvi</span>
+        <span>❌</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        // Configuração
+        const unitId = "APT-101";
+        const residentName = "João Silva";
+        
+        // Elementos
+        const connectionStatus = document.getElementById('connectionStatus');
+        const unitIdSpan = document.getElementById('unitId');
+        const peerIdSpan = document.getElementById('peerId');
+        const notification = document.getElementById('notification');
+        const waitingScreen = document.getElementById('waitingScreen');
+        const videoContainer = document.getElementById('videoContainer');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const acceptBtn = document.getElementById('acceptBtn');
+        const rejectBtn = document.getElementById('rejectBtn');
+        const endCallBtn = document.getElementById('endCallBtn');
+        const debugInfo = document.getElementById('debugInfo');
+        const globalDebug = document.getElementById('globalDebug');
+        
+        // Variáveis
+        let localStream;
+        let currentCall;
+        let peer;
+        
+        // Função de log
+        function log(message, element = globalDebug) {
+            console.log('[Doorvi]', message);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+        
+        // Gerar QR Code
+        function generateQR() {
+            const qrContainer = document.getElementById('qrCode');
+            const baseUrl = window.location.href.replace('morador.html', '');
+            const visitUrl = `${baseUrl}visitante.html?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
+            
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: visitUrl,
+                width: 150,
+                height: 150,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            log('QR Code gerado: ' + visitUrl);
+        }
+        
+        // Som de notificação em volume máximo
+        function playNotificationSound() {
+            try {
+                // Usar Web Audio API para controle preciso do volume
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Criar um som de campainha mais alto e complexo
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        // Alternar entre duas frequências para criar um som de campainha
+                        oscillator.type = 'sine';
+                        oscillator.frequency.value = i % 2 === 0 ? 800 : 1000;
+                        
+                        // Volume máximo (1.0)
+                        gainNode.gain.value = 1.0;
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.4);
+                    }, i * 500);
+                }
+                
+                // Vibração intensa para dispositivos móveis
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([500, 200, 500, 200, 500]);
+                }
+                
+                log('Som de notificação tocado no volume máximo');
+            } catch (e) {
+                log('Erro ao tocar som: ' + e.message);
+                
+                // Fallback para áudio pré-gravado
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmFgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+                    audio.volume = 1.0;
+                    audio.play();
+                } catch (e2) {
+                    log('Erro no fallback de áudio: ' + e2.message);
+                }
+            }
+        }
+        
+        // Inicializar microfone
+        async function initMicrophone() {
+            try {
+                log('Solicitando acesso ao microfone...');
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: false, 
+                    audio: true 
+                });
+                log('Microfone acessado com sucesso');
+                return true;
+            } catch (err) {
+                log('Erro ao acessar microfone: ' + err.message);
+                alert('Não foi possível acessar o microfone. Verifique as permissões.');
+                return false;
+            }
+        }
+        
+        // Inicializar PeerJS
+        function initPeer() {
+            log('Inicializando PeerJS...');
+            
+            peer = new Peer(unitId, {
+                debug: 2,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            });
+            
+            peer.on('open', (id) => {
+                log(`Conectado com ID: ${id}`);
+                connectionStatus.textContent = '✅ Online';
+                peerIdSpan.textContent = id;
+                generateQR();
+            });
+            
+            peer.on('error', (err) => {
+                log(`Erro: ${err.type} - ${err.message}`);
+                connectionStatus.textContent = '❌ Erro de conexão';
+            });
+            
+            peer.on('call', (call) => {
+                log(`Chamada recebida de: ${call.peer}`);
+                
+                // Mostrar notificação
+                notification.style.display = 'block';
+                waitingScreen.style.display = 'none';
+                
+                // Tocar som em volume máximo
+                playNotificationSound();
+                
+                // Salvar referência
+                currentCall = call;
+                
+                // Configurar botão de atender
+                acceptBtn.onclick = async () => {
+                    log('Atendendo chamada...');
+                    
+                    // Esconder notificação
+                    notification.style.display = 'none';
+                    
+                    // Mostrar vídeo
+                    videoContainer.style.display = 'block';
+                    
+                    // Atender chamada
+                    call.answer(localStream);
+                    
+                    // Configurar recebimento de vídeo
+                    call.on('stream', (stream) => {
+                        log('Stream recebido do visitante');
+                        
+                        // Verificar tracks de vídeo
+                        const videoTracks = stream.getVideoTracks();
+                        log(`Tracks de vídeo: ${videoTracks.length}`);
+                        
+                        if (videoTracks.length > 0) {
+                            log('Configurando elemento de vídeo');
+                            remoteVideo.srcObject = stream;
+                            
+                            remoteVideo.onloadedmetadata = () => {
+                                log('Vídeo carregado com sucesso');
+                                remoteVideo.play().catch(e => {
+                                    log('Erro ao reproduzir vídeo: ' + e.message);
+                                });
+                            };
+                            
+                            remoteVideo.onerror = (e) => {
+                                log('Erro no elemento de vídeo: ' + e);
+                            };
+                        } else {
+                            log('Nenhum track de vídeo recebido');
+                        }
+                    });
+                    
+                    call.on('close', () => {
+                        log('Chamada encerrada');
+                        endCall();
+                    });
+                    
+                    call.on('error', (err) => {
+                        log(`Erro na chamada: ${err.message}`);
+                        endCall();
+                    });
+                };
+                
+                // Configurar botão de recusar
+                rejectBtn.onclick = () => {
+                    log('Recusando chamada');
+                    call.close();
+                    notification.style.display = 'none';
+                    waitingScreen.style.display = 'block';
+                };
+            });
+        }
+        
+        // Encerrar chamada
+        function endCall() {
+            log('Encerrando chamada');
+            
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getTracks().forEach(track => {
+                    track.stop();
+                    log('Parando track: ' + track.kind);
+                });
+                remoteVideo.srcObject = null;
+            }
+            
+            videoContainer.style.display = 'none';
+            waitingScreen.style.display = 'block';
+        }
+        
+        // Botão de encerrar chamada
+        endCallBtn.addEventListener('click', () => {
+            if (currentCall) {
+                currentCall.close();
+            }
+            endCall();
+        });
+        
+        // Inicializar sistema
+        window.addEventListener('load', async () => {
+            log('Iniciando sistema...');
+            unitIdSpan.textContent = unitId;
+            
+            // Registrar Service Worker para PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Falha ao registrar Service Worker:', error);
+                    });
+            }
+            
+            // Configurar banner de instalação PWA
+            let deferredPrompt;
+            const installBanner = document.getElementById('installBanner');
+            
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBanner.classList.add('show');
+            });
+            
+            installBanner.addEventListener('click', () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('Usuário aceitou a instalação');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+                installBanner.classList.remove('show');
+            });
+            
+            // Inicializar microfone
+            const micOk = await initMicrophone();
+            if (!micOk) return;
+            
+            // Inicializar Peer
+            initPeer();
+        });
+    </script>
+</body>
+</html>
