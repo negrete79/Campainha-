@@ -7,18 +7,9 @@
     <meta name="theme-color" content="#0f0c29">
     <meta name="description" content="Sistema de intercomunicação inteligente para condomínios">
     
-    <!-- Manifest para PWA -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Ícones para PWA -->
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
-    
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     
-    <!-- Estilos atualizados para um visual mais moderno e futurista -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
         
@@ -35,24 +26,6 @@
             min-height: 100vh;
             padding: 20px;
             overflow-x: hidden;
-        }
-        
-        /* Animação de fundo futurista */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><path d="M0,0 L100,100 M100,0 L0,100" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></svg>');
-            z-index: -1;
-            animation: moveBackground 20s linear infinite;
-        }
-        
-        @keyframes moveBackground {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(20px, 20px); }
         }
         
         .container {
@@ -105,6 +78,83 @@
             color: #00d2ff;
         }
         
+        .qr-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .qr-section h3 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            display: inline-block;
+            margin: 15px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .qr-info {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            margin: 10px;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-100%);
+            transition: transform 0.3s;
+            z-index: -1;
+        }
+        
+        .btn:hover::before {
+            transform: translateX(0);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 210, 255, 0.6);
+        }
+        
         .notification {
             background: linear-gradient(135deg, rgba(231, 76, 60, 0.9), rgba(192, 57, 43, 0.9));
             backdrop-filter: blur(10px);
@@ -137,39 +187,6 @@
             gap: 20px;
         }
         
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s;
-            font-family: 'Orbitron', sans-serif;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateX(-100%);
-            transition: transform 0.3s;
-            z-index: -1;
-        }
-        
-        .btn:hover::before {
-            transform: translateX(0);
-        }
-        
         .btn-accept {
             background: linear-gradient(135deg, #2ecc71, #27ae60);
             color: white;
@@ -188,18 +205,6 @@
         }
         
         .btn-reject:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(231, 76, 60, 0.6);
-        }
-        
-        .btn-end {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-        }
-        
-        .btn-end:hover {
             transform: translateY(-3px);
             box-shadow: 0 7px 20px rgba(231, 76, 60, 0.6);
         }
@@ -263,13 +268,6 @@
             100% { transform: translateY(0px); }
         }
         
-        .waiting h2 {
-            font-size: 1.8em;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
         .debug {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(5px);
@@ -284,116 +282,6 @@
             border: 1px solid rgba(0, 210, 255, 0.2);
         }
         
-        .qr-section {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        .qr-section h3 {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .qr-code {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            display: inline-block;
-            margin: 15px 0;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .qr-info {
-            margin-top: 15px;
-            font-size: 0.9em;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        /* Efeito de brilho futurista */
-        .glow {
-            position: relative;
-        }
-        
-        .glow::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: inherit;
-            box-shadow: 0 0 15px rgba(0, 210, 255, 0.7);
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: -1;
-        }
-        
-        .glow:hover::after {
-            opacity: 1;
-        }
-        
-        /* Indicador de status animado */
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: blink 2s infinite;
-        }
-        
-        .status-online {
-            background-color: #2ecc71;
-            box-shadow: 0 0 10px #2ecc71;
-        }
-        
-        .status-offline {
-            background-color: #e74c3c;
-            box-shadow: 0 0 10px #e74c3c;
-        }
-        
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        /* Mensagem de erro */
-        .error-message {
-            background: rgba(231, 76, 60, 0.2);
-            border-left: 4px solid #e74c3c;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 5px;
-            text-align: left;
-            display: none;
-        }
-        
-        .retry-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            margin-top: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .retry-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        /* Informações do visitante */
         .visitor-info {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -466,63 +354,29 @@
             color: #9b59b6;
         }
         
-        /* Botão de instalação PWA */
-        .install-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
-            color: white;
-            border: none;
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
-            font-size: 24px;
-            z-index: 1000;
-            transition: all 0.3s;
+            margin-right: 8px;
+            animation: blink 2s infinite;
         }
         
-        .install-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0, 210, 255, 0.6);
+        .status-online {
+            background-color: #2ecc71;
+            box-shadow: 0 0 10px #2ecc71;
         }
         
-        /* Notificação de permissão */
-        .permission-notice {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, rgba(0, 210, 255, 0.9), rgba(58, 123, 213, 0.9));
-            backdrop-filter: blur(10px);
-            padding: 15px 25px;
-            border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            display: none;
-            z-index: 1000;
-            max-width: 80%;
-            text-align: center;
+        .status-offline {
+            background-color: #e74c3c;
+            box-shadow: 0 0 10px #e74c3c;
         }
         
-        .permission-notice button {
-            background: white;
-            color: #3a7bd5;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            margin-left: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        
-        .permission-notice button:hover {
-            transform: scale(1.05);
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
@@ -530,7 +384,7 @@
     <div class="container">
         <h1>🏠 Painel do Morador - Doorvi</h1>
         
-        <div class="status glow">
+        <div class="status">
             <div>
                 Status: 
                 <span id="connectionStatus">
@@ -542,18 +396,11 @@
             <div>ID: <span id="peerId">--</span></div>
         </div>
         
-        <div class="qr-section glow">
+        <div class="qr-section">
             <h3>QR Code da Sua Campainha</h3>
             <div class="qr-code" id="qrCode"></div>
             <div class="qr-info">Este QR Code é permanente e único para sua unidade</div>
-            <button class="btn" onclick="window.open('visitante.html?unit=APT-101&resident=João Silva', '_blank')">Ver Página do Visitante</button>
-        </div>
-        
-        <div class="error-message" id="errorMessage">
-            <strong>Erro de conexão:</strong> <span id="errorText"></span>
-            <div>
-                <button class="retry-btn" id="retryBtn">Tentar Novamente</button>
-            </div>
+            <button class="btn btn-primary" onclick="testVisitorPage()">Testar Página do Visitante</button>
         </div>
         
         <div class="notification" id="notification">
@@ -588,8 +435,8 @@
             </div>
             
             <div class="notification-buttons">
-                <button class="btn btn-accept glow" id="acceptBtn">✅ Atender</button>
-                <button class="btn btn-reject glow" id="rejectBtn">❌ Recusar</button>
+                <button class="btn btn-accept" id="acceptBtn">✅ Atender</button>
+                <button class="btn btn-reject" id="rejectBtn">❌ Recusar</button>
             </div>
             
             <div class="debug" id="debugInfo"></div>
@@ -606,19 +453,10 @@
                 <video id="remoteVideo" autoplay playsinline></video>
                 <div class="video-label">Visitante</div>
             </div>
-            <button class="btn btn-end glow" id="endCallBtn">❌ Encerrar Chamada</button>
+            <button class="btn btn-reject" id="endCallBtn">❌ Encerrar Chamada</button>
         </div>
         
         <div class="debug" id="globalDebug"></div>
-    </div>
-    
-    <!-- Botão de instalação PWA -->
-    <button class="install-btn" id="installBtn" style="display: none;">⬇️</button>
-    
-    <!-- Notificação de permissão -->
-    <div class="permission-notice" id="permissionNotice">
-        Para receber notificações quando o app estiver em segundo plano, permita as notificações.
-        <button id="enableNotificationsBtn">Permitir</button>
     </div>
 
     <script>
@@ -639,12 +477,6 @@
         const endCallBtn = document.getElementById('endCallBtn');
         const debugInfo = document.getElementById('debugInfo');
         const globalDebug = document.getElementById('globalDebug');
-        const installBtn = document.getElementById('installBtn');
-        const permissionNotice = document.getElementById('permissionNotice');
-        const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
-        const errorMessage = document.getElementById('errorMessage');
-        const errorText = document.getElementById('errorText');
-        const retryBtn = document.getElementById('retryBtn');
         
         // Elementos de informações do visitante
         const visitorInfo = document.getElementById('visitorInfo');
@@ -662,11 +494,7 @@
         let localStream;
         let currentCall;
         let peer;
-        let deferredPrompt;
-        let isNotificationPermissionGranted = false;
         let qrGenerated = false;
-        let connectionAttempts = 0;
-        const maxConnectionAttempts = 3;
         
         // Função de log
         function log(message, element = globalDebug) {
@@ -676,12 +504,12 @@
             element.scrollTop = element.scrollHeight;
         }
         
-        // Gerar QR Code (apenas uma vez)
+        // Gerar QR Code
         function generateQR() {
             if (qrGenerated) return;
             
             const qrContainer = document.getElementById('qrCode');
-            const baseUrl = window.location.href.replace('morador.html', '');
+            const baseUrl = window.location.href;
             const visitUrl = `${baseUrl}visitante.html?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
             
             qrContainer.innerHTML = '';
@@ -698,35 +526,11 @@
             qrGenerated = true;
         }
         
-        // Som de notificação mais alto e impactante
-        function playNotificationSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // Criar um som mais complexo e alto
-                for (let i = 0; i < 8; i++) {
-                    setTimeout(() => {
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        // Alternar entre frequências para criar um som mais distintivo
-                        oscillator.type = i % 2 === 0 ? 'sine' : 'square';
-                        oscillator.frequency.value = i % 2 === 0 ? 523.25 : 659.25; // C5 e E5
-                        
-                        // Aumentar o volume
-                        gainNode.gain.value = 0.6;
-                        
-                        oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.4);
-                    }, i * 500);
-                }
-                log('Som de notificação tocado');
-            } catch (e) {
-                log('Erro ao tocar som: ' + e.message);
-            }
+        // Testar página do visitante
+        function testVisitorPage() {
+            const baseUrl = window.location.href;
+            const visitUrl = `${baseUrl}visitante.html?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
+            window.open(visitUrl, '_blank');
         }
         
         // Inicializar microfone
@@ -741,100 +545,8 @@
                 return true;
             } catch (err) {
                 log('Erro ao acessar microfone: ' + err.message);
-                alert('Não foi possível acessar o microfone. Verifique as permissões.');
                 return false;
             }
-        }
-        
-        // Registrar Service Worker
-        function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./service-worker.js')
-                        .then(registration => {
-                            log('Service Worker registrado com sucesso: ' + registration.scope);
-                        })
-                        .catch(error => {
-                            log('Falha ao registrar Service Worker: ' + error);
-                        });
-                });
-            }
-        }
-        
-        // Solicitar permissão de notificação
-        async function requestNotificationPermission() {
-            if ('Notification' in window) {
-                if (Notification.permission === 'granted') {
-                    isNotificationPermissionGranted = true;
-                    log('Permissão de notificação já concedida');
-                } else if (Notification.permission !== 'denied') {
-                    permissionNotice.style.display = 'block';
-                    
-                    enableNotificationsBtn.addEventListener('click', async () => {
-                        const permission = await Notification.requestPermission();
-                        if (permission === 'granted') {
-                            isNotificationPermissionGranted = true;
-                            log('Permissão de notificação concedida');
-                            permissionNotice.style.display = 'none';
-                        } else {
-                            log('Permissão de notificação negada');
-                        }
-                    });
-                }
-            }
-        }
-        
-        // Enviar notificação
-        function sendNotification(title, options) {
-            if (isNotificationPermissionGranted && 'Notification' in window) {
-                try {
-                    const notification = new Notification(title, options);
-                    
-                    notification.onclick = () => {
-                        window.focus();
-                        notification.close();
-                    };
-                    
-                    log('Notificação enviada: ' + title);
-                } catch (e) {
-                    log('Erro ao enviar notificação: ' + e.message);
-                }
-            }
-        }
-        
-        // Configurar botão de instalação
-        function setupInstallButton() {
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                installBtn.style.display = 'flex';
-                
-                installBtn.addEventListener('click', () => {
-                    installBtn.style.display = 'none';
-                    deferredPrompt.prompt();
-                    
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            log('App instalado');
-                        } else {
-                            log('Instalação cancelada');
-                        }
-                        deferredPrompt = null;
-                    });
-                });
-            });
-        }
-        
-        // Mostrar mensagem de erro
-        function showError(message) {
-            errorText.textContent = message;
-            errorMessage.style.display = 'block';
-            connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Erro de conexão';
-        }
-        
-        // Esconder mensagem de erro
-        function hideError() {
-            errorMessage.style.display = 'none';
         }
         
         // Exibir informações do visitante
@@ -897,14 +609,7 @@
         
         // Inicializar PeerJS
         function initPeer() {
-            connectionAttempts++;
-            log(`Tentativa de conexão #${connectionAttempts}...`);
-            hideError();
-            
-            // Destruir instância anterior se existir
-            if (peer) {
-                peer.destroy();
-            }
+            log('Inicializando PeerJS...');
             
             peer = new Peer(unitId, {
                 debug: 2,
@@ -912,9 +617,7 @@
                     iceServers: [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun3.l.google.com:19302' },
-                        { urls: 'stun:stun4.l.google.com:19302' }
+                        { urls: 'stun:stun2.l.google.com:19302' }
                     ]
                 }
             });
@@ -924,30 +627,141 @@
                 connectionStatus.innerHTML = '<span class="status-indicator status-online"></span>✅ Online';
                 peerIdSpan.textContent = id;
                 generateQR();
-                connectionAttempts = 0; // Resetar contador após conexão bem-sucedida
             });
             
             peer.on('error', (err) => {
                 log(`Erro: ${err.type} - ${err.message}`);
-                
-                if (err.type === 'unavailable-id') {
-                    showError(`ID "${unitId}" já está em uso. Tente outro ID.`);
-                } else if (err.type === 'network') {
-                    showError('Erro de rede. Verifique sua conexão com a internet.');
-                } else if (err.type === 'server-error') {
-                    showError('Erro no servidor. Tente novamente mais tarde.');
-                } else {
-                    showError(`Erro: ${err.message}`);
-                }
-                
-                // Tentar reconectar se não excedeu o número máximo de tentativas
-                if (connectionAttempts < maxConnectionAttempts) {
-                    setTimeout(() => {
-                        log('Tentando reconectar...');
-                        initPeer();
-                    }, 5000);
-                }
+                connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Erro: ' + err.message;
             });
             
             peer.on('disconnected', () => {
-                log('Des
+                log('Desconectado do servidor');
+                connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Desconectado';
+                
+                // Tentar reconectar após 5 segundos
+                setTimeout(() => {
+                    log('Tentando reconectar...');
+                    peer.reconnect();
+                }, 5000);
+            });
+            
+            peer.on('close', () => {
+                log('Conexão fechada');
+                connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Conexão fechada';
+            });
+            
+            peer.on('call', (call) => {
+                log(`Chamada recebida de: ${call.peer}`);
+                
+                // Mostrar notificação na tela
+                notification.style.display = 'block';
+                waitingScreen.style.display = 'none';
+                
+                // Exibir informações do visitante se disponíveis
+                if (call.metadata) {
+                    displayVisitorInfo(call.metadata);
+                }
+                
+                // Salvar referência
+                currentCall = call;
+                
+                // Configurar botão de atender
+                acceptBtn.onclick = async () => {
+                    log('Atendendo chamada...');
+                    
+                    // Esconder notificação
+                    notification.style.display = 'none';
+                    
+                    // Mostrar vídeo
+                    videoContainer.style.display = 'block';
+                    
+                    // Atender chamada
+                    call.answer(localStream);
+                    
+                    // Configurar recebimento de vídeo
+                    call.on('stream', (stream) => {
+                        log('Stream recebido do visitante');
+                        
+                        // Verificar tracks de vídeo
+                        const videoTracks = stream.getVideoTracks();
+                        log(`Tracks de vídeo: ${videoTracks.length}`);
+                        
+                        if (videoTracks.length > 0) {
+                            log('Configurando elemento de vídeo');
+                            remoteVideo.srcObject = stream;
+                            
+                            remoteVideo.onloadedmetadata = () => {
+                                log('Vídeo carregado com sucesso');
+                                remoteVideo.play().catch(e => {
+                                    log('Erro ao reproduzir vídeo: ' + e.message);
+                                });
+                            };
+                            
+                            remoteVideo.onerror = (e) => {
+                                log('Erro no elemento de vídeo: ' + e);
+                            };
+                        } else {
+                            log('Nenhum track de vídeo recebido');
+                        }
+                    });
+                    
+                    call.on('close', () => {
+                        log('Chamada encerrada');
+                        endCall();
+                    });
+                    
+                    call.on('error', (err) => {
+                        log(`Erro na chamada: ${err.message}`);
+                        endCall();
+                    });
+                };
+                
+                // Configurar botão de recusar
+                rejectBtn.onclick = () => {
+                    log('Recusando chamada');
+                    call.close();
+                    notification.style.display = 'none';
+                    waitingScreen.style.display = 'block';
+                };
+            });
+        }
+        
+        // Encerrar chamada
+        function endCall() {
+            log('Encerrando chamada');
+            
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getTracks().forEach(track => {
+                    track.stop();
+                    log('Parando track: ' + track.kind);
+                });
+                remoteVideo.srcObject = null;
+            }
+            
+            videoContainer.style.display = 'none';
+            waitingScreen.style.display = 'block';
+        }
+        
+        // Botão de encerrar chamada
+        endCallBtn.addEventListener('click', () => {
+            if (currentCall) {
+                currentCall.close();
+            }
+            endCall();
+        });
+        
+        // Inicializar sistema
+        window.addEventListener('load', async () => {
+            log('Iniciando sistema...');
+            unitIdSpan.textContent = unitId;
+            
+            // Inicializar microfone
+            const micOk = await initMicrophone();
+            if (!micOk) return;
+            
+            // Inicializar Peer
+            initPeer();
+        });
+    </script>
+</body>
+</html>

@@ -7,17 +7,8 @@
     <meta name="theme-color" content="#0f0c29">
     <meta name="description" content="Sistema de intercomunicação inteligente para condomínios">
     
-    <!-- Manifest para PWA -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Ícones para PWA -->
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
-    
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     
-    <!-- Estilos atualizados para um visual mais moderno e futurista -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
         
@@ -34,24 +25,6 @@
             min-height: 100vh;
             padding: 20px;
             overflow-x: hidden;
-        }
-        
-        /* Animação de fundo futurista */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><path d="M0,0 L100,100 M100,0 L0,100" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></svg>');
-            z-index: -1;
-            animation: moveBackground 20s linear infinite;
-        }
-        
-        @keyframes moveBackground {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(20px, 20px); }
         }
         
         .container {
@@ -182,17 +155,6 @@
             box-shadow: 0 7px 20px rgba(231, 76, 60, 0.6);
         }
         
-        .btn-retry {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: white;
-            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
-        }
-        
-        .btn-retry:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(243, 156, 18, 0.6);
-        }
-        
         .video-container {
             display: none;
             margin: 25px 0;
@@ -273,31 +235,6 @@
             border: 1px solid rgba(0, 210, 255, 0.2);
         }
         
-        /* Efeito de brilho futurista */
-        .glow {
-            position: relative;
-        }
-        
-        .glow::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: inherit;
-            box-shadow: 0 0 15px rgba(0, 210, 255, 0.7);
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: -1;
-        }
-        
-        .glow:hover::after {
-            opacity: 1;
-        }
-        
-        /* Indicador de status animado */
         .status-indicator {
             display: inline-block;
             width: 12px;
@@ -321,33 +258,6 @@
             0% { opacity: 1; }
             50% { opacity: 0.5; }
             100% { opacity: 1; }
-        }
-        
-        /* Mensagem de erro */
-        .error-message {
-            background: rgba(231, 76, 60, 0.2);
-            border-left: 4px solid #e74c3c;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 5px;
-            text-align: left;
-            display: none;
-        }
-        
-        .retry-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            margin-top: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .retry-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
         }
         
         /* Modal */
@@ -580,7 +490,7 @@
     <div class="container">
         <h1>🚪 Visitante - Doorvi</h1>
         
-        <div class="status glow">
+        <div class="status">
             <div>
                 Status: 
                 <span id="connectionStatus">
@@ -592,7 +502,7 @@
             <div>Morador: <span id="residentName">--</span></div>
         </div>
         
-        <div class="info-panel glow">
+        <div class="info-panel">
             <h3>Informações da Visita</h3>
             <p>Você está prestes a chamar a unidade <span id="unitDisplay">--</span>.</p>
             <p>Clique no botão abaixo para identificar-se e iniciar a chamada.</p>
@@ -622,21 +532,14 @@
             </div>
         </div>
         
-        <button class="btn btn-call glow" id="identifyBtn">👤 Identificar-se</button>
-        
-        <div class="error-message" id="errorMessage">
-            <strong>Erro:</strong> <span id="errorText"></span>
-            <div>
-                <button class="retry-btn" id="retryBtn">Tentar Novamente</button>
-            </div>
-        </div>
+        <button class="btn btn-call" id="identifyBtn">👤 Identificar-se</button>
         
         <div class="waiting" id="waitingScreen">
             <div class="waiting-icon">⏳</div>
             <h2>Aguardando Atendimento</h2>
             <p>O morador foi notificado e está sendo chamado</p>
             <p>Por favor, aguarde enquanto o morador atende sua chamada</p>
-            <button class="btn btn-end glow" id="cancelCallBtn">❌ Cancelar Chamada</button>
+            <button class="btn btn-end" id="cancelCallBtn">❌ Cancelar Chamada</button>
         </div>
         
         <div class="video-container" id="videoContainer">
@@ -644,7 +547,7 @@
                 <video id="localVideo" autoplay muted playsinline></video>
                 <div class="video-label">Você</div>
             </div>
-            <button class="btn btn-end glow" id="endCallBtn">❌ Encerrar Chamada</button>
+            <button class="btn btn-end" id="endCallBtn">❌ Encerrar Chamada</button>
         </div>
         
         <div class="debug" id="globalDebug"></div>
@@ -746,9 +649,6 @@
         const cancelCallBtn = document.getElementById('cancelCallBtn');
         const endCallBtn = document.getElementById('endCallBtn');
         const globalDebug = document.getElementById('globalDebug');
-        const errorMessage = document.getElementById('errorMessage');
-        const errorText = document.getElementById('errorText');
-        const retryBtn = document.getElementById('retryBtn');
         
         // Elementos do Modal
         const modal = document.getElementById('visitorModal');
@@ -774,17 +674,15 @@
         let currentCall;
         let peer;
         let callTimeout;
-        let connectionAttempts = 0;
-        const maxConnectionAttempts = 3;
         let selectedVisitorType = '';
         let visitorData = {};
         
         // Função de log
-        function log(message, element = globalDebug) {
+        function log(message) {
             console.log('[Doorvi Visitante]', message);
             const timestamp = new Date().toLocaleTimeString();
-            element.textContent += `[${timestamp}] ${message}\n`;
-            element.scrollTop = element.scrollHeight;
+            globalDebug.textContent += `[${timestamp}] ${message}\n`;
+            globalDebug.scrollTop = globalDebug.scrollHeight;
         }
         
         // Inicializar câmera
@@ -799,33 +697,14 @@
                 return true;
             } catch (err) {
                 log('Erro ao acessar câmera/microfone: ' + err.message);
-                showError('Não foi possível acessar a câmera e o microfone. Verifique as permissões.');
+                alert('Não foi possível acessar a câmera e o microfone. Verifique as permissões.');
                 return false;
             }
         }
         
-        // Mostrar mensagem de erro
-        function showError(message) {
-            errorText.textContent = message;
-            errorMessage.style.display = 'block';
-            connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Erro';
-        }
-        
-        // Esconder mensagem de erro
-        function hideError() {
-            errorMessage.style.display = 'none';
-        }
-        
         // Inicializar PeerJS
         function initPeer() {
-            connectionAttempts++;
-            log(`Tentativa de conexão #${connectionAttempts}...`);
-            hideError();
-            
-            // Destruir instância anterior se existir
-            if (peer) {
-                peer.destroy();
-            }
+            log('Inicializando PeerJS...');
             
             peer = new Peer({
                 debug: 2,
@@ -833,9 +712,7 @@
                     iceServers: [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun3.l.google.com:19302' },
-                        { urls: 'stun:stun4.l.google.com:19302' }
+                        { urls: 'stun:stun2.l.google.com:19302' }
                     ]
                 }
             });
@@ -847,22 +724,7 @@
             
             peer.on('error', (err) => {
                 log(`Erro: ${err.type} - ${err.message}`);
-                
-                if (err.type === 'network') {
-                    showError('Erro de rede. Verifique sua conexão com a internet.');
-                } else if (err.type === 'server-error') {
-                    showError('Erro no servidor. Tente novamente mais tarde.');
-                } else {
-                    showError(`Erro: ${err.message}`);
-                }
-                
-                // Tentar reconectar se não excedeu o número máximo de tentativas
-                if (connectionAttempts < maxConnectionAttempts) {
-                    setTimeout(() => {
-                        log('Tentando reconectar...');
-                        initPeer();
-                    }, 5000);
-                }
+                connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Erro: ' + err.message;
             });
             
             peer.on('disconnected', () => {
@@ -871,10 +733,8 @@
                 
                 // Tentar reconectar após 5 segundos
                 setTimeout(() => {
-                    if (connectionAttempts < maxConnectionAttempts) {
-                        log('Tentando reconectar...');
-                        peer.reconnect();
-                    }
+                    log('Tentando reconectar...');
+                    peer.reconnect();
                 }, 5000);
             });
             
@@ -919,7 +779,7 @@
                 // Configurar timeout para a chamada
                 callTimeout = setTimeout(() => {
                     log('Tempo de espera esgotado');
-                    showError('O morador não atendeu a chamada. Tente novamente mais tarde.');
+                    alert('O morador não atendeu a chamada. Tente novamente mais tarde.');
                     cancelCall();
                 }, 30000); // 30 segundos
                 
@@ -950,13 +810,13 @@
                 
                 currentCall.on('error', (err) => {
                     log(`Erro na chamada: ${err.message}`);
-                    showError(`Erro na chamada: ${err.message}`);
+                    alert('Erro na chamada: ' + err.message);
                     endCall();
                 });
                 
             } catch (err) {
                 log('Erro ao iniciar chamada: ' + err.message);
-                showError('Não foi possível iniciar a chamada. Verifique se o morador está online.');
+                alert('Não foi possível iniciar a chamada. Verifique se o morador está online.');
                 waitingScreen.style.display = 'none';
             }
         }
@@ -1142,12 +1002,6 @@
         // Botão de encerrar chamada
         endCallBtn.addEventListener('click', endCall);
         
-        // Botão de tentar novamente
-        retryBtn.addEventListener('click', () => {
-            connectionAttempts = 0; // Resetar contador
-            initPeer();
-        });
-        
         // Inicializar sistema
         window.addEventListener('load', async () => {
             log('Iniciando sistema do visitante...');
@@ -1168,16 +1022,6 @@
                 document.removeEventListener('click', initCameraOnClick);
             }, { once: true });
         });
-        
-        // Verificar status da conexão periodicamente
-        setInterval(() => {
-            if (peer && peer.disconnected) {
-                log('Detectada desconexão, tentando reconectar...');
-                if (connectionAttempts < maxConnectionAttempts) {
-                    peer.reconnect();
-                }
-            }
-        }, 30000); // Verificar a cada 30 segundos
     </script>
 </body>
 </html>
