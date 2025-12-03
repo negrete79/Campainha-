@@ -262,11 +262,32 @@
             margin-top: 30px;
         }
         
-        .history h3 {
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 15px;
+        }
+        
+        .history h3 {
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+        
+        .clear-history-btn {
+            background: rgba(231, 76, 60, 0.7);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .clear-history-btn:hover {
+            background: rgba(231, 76, 60, 0.9);
         }
         
         .history-item {
@@ -369,6 +390,11 @@
                 flex-direction: column;
                 gap: 10px;
             }
+            
+            .history-header {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -462,7 +488,10 @@
         </div>
         
         <div class="history">
-            <h3>📋 Histórico de Visitas</h3>
+            <div class="history-header">
+                <h3>📋 Histórico de Visitas</h3>
+                <button class="clear-history-btn" id="clearHistoryBtn">🗑️ Limpar Histórico</button>
+            </div>
             <div id="historyList">
                 <div class="no-visits">Nenhuma visita recente</div>
             </div>
@@ -504,6 +533,7 @@
         const screenshotBtn = document.getElementById('screenshotBtn');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
         const unitIdSpan = document.getElementById('unitId');
         const connectionStatus = document.getElementById('connectionStatus');
         const peerIdDisplay = document.getElementById('peerIdDisplay');
@@ -741,6 +771,16 @@
             updateHistoryUI();
         }
         
+        // Limpar histórico
+        function clearHistory() {
+            if (confirm('Tem certeza que deseja limpar todo o histórico de visitas?')) {
+                visitHistory = [];
+                localStorage.setItem('visitHistory', JSON.stringify(visitHistory));
+                updateHistoryUI();
+                log('Histórico de visitas limpo');
+            }
+        }
+        
         // Atualizar UI do histórico
         function updateHistoryUI() {
             if (visitHistory.length === 0) {
@@ -840,6 +880,9 @@
                 alert('Porta aberta com sucesso!');
             }
         });
+        
+        // Botão para limpar histórico
+        clearHistoryBtn.addEventListener('click', clearHistory);
         
         // Inicializar sistema
         window.addEventListener('load', async () => {
