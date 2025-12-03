@@ -1,98 +1,60 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Morador - Doorvi</title>
-    <meta name="theme-color" content="#0f0c29">
-    <meta name="description" content="Sistema de intercomunicação inteligente para condomínios">
-    
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <title>Campainha Virtual - Morador</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            font-family: 'Orbitron', sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
             padding: 20px;
-            overflow-x: hidden;
         }
         
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-            position: relative;
-            z-index: 1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         h1 {
-            margin-bottom: 20px;
-            font-size: 2.5em;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: linear-gradient(90deg, #00d2ff, #3a7bd5, #00d2ff);
-            background-size: 200% auto;
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: shine 3s linear infinite;
-            text-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
-        @keyframes shine {
-            to { background-position: 200% center; }
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
         }
         
-        .status {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        .status div {
-            margin: 8px 0;
-            font-size: 1.1em;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .status span {
-            font-weight: 700;
-            color: #00d2ff;
+        .icon {
+            font-size: 3rem;
+            margin: 20px 0;
         }
         
         .qr-section {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        .qr-section h3 {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin: 30px 0;
         }
         
         .qr-code {
@@ -100,668 +62,523 @@
             padding: 20px;
             border-radius: 15px;
             display: inline-block;
-            margin: 15px 0;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
-        .qr-info {
-            margin-top: 15px;
-            font-size: 0.9em;
-            color: rgba(255, 255, 255, 0.7);
+        .qr-code img {
+            width: 200px;
+            height: 200px;
         }
         
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 16px;
+        .instructions {
+            font-size: 1rem;
+            opacity: 0.8;
+            max-width: 400px;
+            margin: 15px auto;
+            line-height: 1.5;
+        }
+        
+        .status-panel {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
             font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s;
-            font-family: 'Orbitron', sans-serif;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-            margin: 10px;
         }
         
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateX(-100%);
-            transition: transform 0.3s;
-            z-index: -1;
+        .status-value {
+            color: #a5d6ff;
         }
         
-        .btn:hover::before {
-            transform: translateX(0);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
-            color: white;
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(0, 210, 255, 0.6);
-        }
-        
-        .notification {
-            background: linear-gradient(135deg, rgba(231, 76, 60, 0.9), rgba(192, 57, 43, 0.9));
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .call-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: #333;
             padding: 25px;
             border-radius: 15px;
-            margin-bottom: 25px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            max-width: 350px;
             display: none;
-            box-shadow: 0 8px 32px rgba(231, 76, 60, 0.3);
-            animation: pulse 2s infinite;
         }
         
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(231, 76, 60, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        .call-notification.show {
+            transform: translateX(0);
+            display: block;
         }
         
-        .notification h3 {
-            font-size: 1.8em;
+        .call-notification h3 {
+            margin-top: 0;
+            color: #f5576c;
+            font-size: 1.5rem;
             margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
         
-        .notification-buttons {
-            margin-top: 20px;
+        .call-notification-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .call-buttons {
             display: flex;
-            justify-content: center;
-            gap: 20px;
+            gap: 10px;
+            margin-top: 20px;
         }
         
-        .btn-accept {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        .call-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .accept-btn {
+            background: #4CAF50;
             color: white;
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
         }
         
-        .btn-accept:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(46, 204, 113, 0.6);
+        .accept-btn:hover {
+            background: #45a049;
         }
         
-        .btn-reject {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        .reject-btn {
+            background: #f44336;
             color: white;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
         }
         
-        .btn-reject:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(231, 76, 60, 0.6);
+        .reject-btn:hover {
+            background: #da190b;
         }
         
         .video-container {
+            margin-top: 30px;
             display: none;
-            margin: 25px 0;
         }
         
-        .video-box {
+        .video-container.show {
+            display: block;
+        }
+        
+        .video-wrapper {
+            position: relative;
             background: #000;
             border-radius: 15px;
             overflow: hidden;
-            position: relative;
-            width: 100%;
-            max-width: 640px;
-            margin: 0 auto;
-            aspect-ratio: 16/9;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(0, 210, 255, 0.3);
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         
         video {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
+            display: block;
         }
         
         .video-label {
             position: absolute;
-            bottom: 15px;
-            left: 15px;
+            bottom: 10px;
+            left: 10px;
             background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            border: 1px solid rgba(0, 210, 255, 0.5);
-            color: #00d2ff;
-        }
-        
-        .waiting {
-            padding: 50px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        .waiting-icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-            100% { transform: translateY(0px); }
-        }
-        
-        .debug {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            font-family: monospace;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-            text-align: left;
-            border: 1px solid rgba(0, 210, 255, 0.2);
-        }
-        
-        .visitor-info {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            text-align: left;
-        }
-        
-        .visitor-info h3 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: center;
-            color: #00d2ff;
-        }
-        
-        .visitor-info-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .visitor-info-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        .visitor-info-label {
-            font-weight: bold;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .visitor-info-value {
-            color: #00d2ff;
-        }
-        
-        .visitor-type-badge {
-            display: inline-block;
+            color: white;
             padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            margin-left: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
         }
         
-        .type-friend {
-            background: rgba(46, 204, 113, 0.2);
-            color: #2ecc71;
+        .call-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
         }
         
-        .type-delivery {
-            background: rgba(241, 196, 15, 0.2);
-            color: #f1c40f;
-        }
-        
-        .type-service {
-            background: rgba(52, 152, 219, 0.2);
-            color: #3498db;
-        }
-        
-        .type-sales {
-            background: rgba(155, 89, 182, 0.2);
-            color: #9b59b6;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
+        .control-btn {
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            margin-right: 8px;
-            animation: blink 2s infinite;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
         
-        .status-online {
-            background-color: #2ecc71;
-            box-shadow: 0 0 10px #2ecc71;
+        .end-call-btn {
+            background: #f44336;
+            color: white;
         }
         
-        .status-offline {
-            background-color: #e74c3c;
-            box-shadow: 0 0 10px #e74c3c;
+        .end-call-btn:hover {
+            background: #da190b;
+            transform: scale(1.1);
         }
         
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+        .toggle-audio-btn, .toggle-video-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .toggle-audio-btn:hover, .toggle-video-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .toggle-audio-btn.muted, .toggle-video-btn.muted {
+            background: #f44336;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .call-notification {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+            
+            .video-wrapper {
+                height: 200px;
+            }
+            
+            video {
+                height: 100%;
+                object-fit: cover;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏠 Painel do Morador - Doorvi</h1>
-        
-        <div class="status">
-            <div>
-                Status: 
-                <span id="connectionStatus">
-                    <span class="status-indicator status-offline"></span>
-                    Conectando...
-                </span>
-            </div>
-            <div>Unidade: <span id="unitId">APT-101</span></div>
-            <div>ID: <span id="peerId">--</span></div>
-        </div>
+        <div class="icon">🏠</div>
+        <h1>Campainha Virtual</h1>
+        <p class="subtitle">Painel do Morador</p>
         
         <div class="qr-section">
-            <h3>QR Code da Sua Campainha</h3>
-            <div class="qr-code" id="qrCode"></div>
-            <div class="qr-info">Este QR Code é permanente e único para sua unidade</div>
-            <button class="btn btn-primary" onclick="testVisitorPage()">Testar Página do Visitante</button>
-        </div>
-        
-        <div class="notification" id="notification">
-            <h3>🔔 Alguém está na sua porta!</h3>
+            <h3>QR Code para Visitantes</h3>
+            <p class="instructions">Compartilhe este QR Code com seus visitantes:</p>
             
-            <div class="visitor-info" id="visitorInfo">
-                <h3>Informações do Visitante</h3>
-                <div class="visitor-info-item">
-                    <span class="visitor-info-label">Tipo:</span>
-                    <span class="visitor-info-value" id="visitorType">--</span>
-                </div>
-                <div class="visitor-info-item">
-                    <span class="visitor-info-label">Nome:</span>
-                    <span class="visitor-info-value" id="visitorName">--</span>
-                </div>
-                <div class="visitor-info-item" id="visitorPhoneItem" style="display: none;">
-                    <span class="visitor-info-label">Telefone:</span>
-                    <span class="visitor-info-value" id="visitorPhone">--</span>
-                </div>
-                <div class="visitor-info-item" id="visitorCompanyItem" style="display: none;">
-                    <span class="visitor-info-label">Empresa:</span>
-                    <span class="visitor-info-value" id="visitorCompany">--</span>
-                </div>
-                <div class="visitor-info-item" id="visitorDeliveryItem" style="display: none;">
-                    <span class="visitor-info-label">Entrega:</span>
-                    <span class="visitor-info-value" id="visitorDelivery">--</span>
-                </div>
-                <div class="visitor-info-item">
-                    <span class="visitor-info-label">Observações:</span>
-                    <span class="visitor-info-value" id="visitorObservations">--</span>
-                </div>
+            <div class="qr-code">
+                <img id="qr-code-img" src="" alt="QR Code da Campainha">
             </div>
             
-            <div class="notification-buttons">
-                <button class="btn btn-accept" id="acceptBtn">✅ Atender</button>
-                <button class="btn btn-reject" id="rejectBtn">❌ Recusar</button>
+            <p class="instructions">Os visitantes devem escanear este código para acessar a campainha virtual</p>
+        </div>
+        
+        <div class="status-panel">
+            <div class="status-item">
+                <span class="status-label">Seu ID:</span>
+                <span id="peer-id" class="status-value">morador-casa-123</span>
             </div>
-            
-            <div class="debug" id="debugInfo"></div>
+            <div class="status-item">
+                <span class="status-label">Status:</span>
+                <span id="connection-status" class="status-value">Aguardando conexão</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Visitantes:</span>
+                <span id="visitor-count" class="status-value">0</span>
+            </div>
         </div>
         
-        <div class="waiting" id="waitingScreen">
-            <div class="waiting-icon">🏠</div>
-            <h2>Aguardando Visitas</h2>
-            <p>O sistema está online e aguardando chamadas</p>
-        </div>
-        
-        <div class="video-container" id="videoContainer">
-            <div class="video-box">
-                <video id="remoteVideo" autoplay playsinline></video>
+        <div id="video-container" class="video-container">
+            <div class="video-wrapper">
+                <video id="local-video" autoplay muted></video>
+                <div class="video-label">Você</div>
+            </div>
+            <div class="video-wrapper">
+                <video id="remote-video" autoplay></video>
                 <div class="video-label">Visitante</div>
             </div>
-            <button class="btn btn-reject" id="endCallBtn">❌ Encerrar Chamada</button>
+            
+            <div class="call-controls">
+                <button id="toggle-audio-btn" class="control-btn toggle-audio-btn">🎤</button>
+                <button id="toggle-video-btn" class="control-btn toggle-video-btn">📹</button>
+                <button id="end-call-btn" class="control-btn end-call-btn">📞</button>
+            </div>
         </div>
-        
-        <div class="debug" id="globalDebug"></div>
+    </div>
+
+    <!-- Notificação de chamada -->
+    <div id="call-notification" class="call-notification">
+        <div class="call-notification-icon">📞</div>
+        <h3>Chamada Recebida!</h3>
+        <p>Um visitante está chamando você.</p>
+        <div class="call-buttons">
+            <button id="accept-call-btn" class="call-btn accept-btn">Aceitar</button>
+            <button id="reject-call-btn" class="call-btn reject-btn">Rejeitar</button>
+        </div>
     </div>
 
     <script>
-        // Configuração
-        const unitId = "APT-101";
-        const residentName = "João Silva";
-        
-        // Elementos
-        const connectionStatus = document.getElementById('connectionStatus');
-        const unitIdSpan = document.getElementById('unitId');
-        const peerIdSpan = document.getElementById('peerId');
-        const notification = document.getElementById('notification');
-        const waitingScreen = document.getElementById('waitingScreen');
-        const videoContainer = document.getElementById('videoContainer');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const acceptBtn = document.getElementById('acceptBtn');
-        const rejectBtn = document.getElementById('rejectBtn');
-        const endCallBtn = document.getElementById('endCallBtn');
-        const debugInfo = document.getElementById('debugInfo');
-        const globalDebug = document.getElementById('globalDebug');
-        
-        // Elementos de informações do visitante
-        const visitorInfo = document.getElementById('visitorInfo');
-        const visitorType = document.getElementById('visitorType');
-        const visitorName = document.getElementById('visitorName');
-        const visitorPhoneItem = document.getElementById('visitorPhoneItem');
-        const visitorPhone = document.getElementById('visitorPhone');
-        const visitorCompanyItem = document.getElementById('visitorCompanyItem');
-        const visitorCompany = document.getElementById('visitorCompany');
-        const visitorDeliveryItem = document.getElementById('visitorDeliveryItem');
-        const visitorDelivery = document.getElementById('visitorDelivery');
-        const visitorObservations = document.getElementById('visitorObservations');
-        
-        // Variáveis
-        let localStream;
-        let currentCall;
+        // Variáveis globais
         let peer;
-        let qrGenerated = false;
+        let connections = [];
+        let currentCall = null;
+        let localStream = null;
+        let visitorCount = 0;
+        const MORADOR_ID = 'morador-casa-123'; // ID fixo para o morador
         
-        // Função de log
-        function log(message, element = globalDebug) {
-            console.log('[Doorvi]', message);
-            const timestamp = new Date().toLocaleTimeString();
-            element.textContent += `[${timestamp}] ${message}\n`;
-            element.scrollTop = element.scrollHeight;
-        }
+        // Elementos do DOM
+        const peerIdElement = document.getElementById('peer-id');
+        const connectionStatusElement = document.getElementById('connection-status');
+        const visitorCountElement = document.getElementById('visitor-count');
+        const qrCodeImg = document.getElementById('qr-code-img');
+        const callNotification = document.getElementById('call-notification');
+        const acceptCallBtn = document.getElementById('accept-call-btn');
+        const rejectCallBtn = document.getElementById('reject-call-btn');
+        const videoContainer = document.getElementById('video-container');
+        const localVideo = document.getElementById('local-video');
+        const remoteVideo = document.getElementById('remote-video');
+        const toggleAudioBtn = document.getElementById('toggle-audio-btn');
+        const toggleVideoBtn = document.getElementById('toggle-video-btn');
+        const endCallBtn = document.getElementById('end-call-btn');
         
-        // Gerar QR Code
-        function generateQR() {
-            if (qrGenerated) return;
-            
-            const qrContainer = document.getElementById('qrCode');
-            const baseUrl = window.location.href;
-            const visitUrl = `${baseUrl}visitante.html?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
-            
-            qrContainer.innerHTML = '';
-            new QRCode(qrContainer, {
-                text: visitUrl,
-                width: 150,
-                height: 150,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            
-            log('QR Code gerado: ' + visitUrl);
-            qrGenerated = true;
-        }
+        // Event Listeners
+        acceptCallBtn.addEventListener('click', acceptCall);
+        rejectCallBtn.addEventListener('click', rejectCall);
+        toggleAudioBtn.addEventListener('click', toggleAudio);
+        toggleVideoBtn.addEventListener('click', toggleVideo);
+        endCallBtn.addEventListener('click', endCall);
         
-        // Testar página do visitante
-        function testVisitorPage() {
-            const baseUrl = window.location.href;
-            const visitUrl = `${baseUrl}visitante.html?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
-            window.open(visitUrl, '_blank');
-        }
-        
-        // Inicializar microfone
-        async function initMicrophone() {
-            try {
-                log('Solicitando acesso ao microfone...');
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: false, 
-                    audio: true 
-                });
-                log('Microfone acessado com sucesso');
-                return true;
-            } catch (err) {
-                log('Erro ao acessar microfone: ' + err.message);
-                return false;
-            }
-        }
-        
-        // Exibir informações do visitante
-        function displayVisitorInfo(metadata) {
-            if (!metadata) return;
-            
-            // Mapear tipos para nomes amigáveis e classes CSS
-            const typeInfo = {
-                'friend': { name: 'Amigo/Parente', class: 'type-friend' },
-                'delivery': { name: 'Entrega', class: 'type-delivery' },
-                'service': { name: 'Serviço', class: 'type-service' },
-                'sales': { name: 'Vendedor', class: 'type-sales' }
-            };
-            
-            const type = typeInfo[metadata.type] || { name: metadata.type, class: '' };
-            
-            // Preencher informações básicas
-            visitorType.innerHTML = type.name + `<span class="visitor-type-badge ${type.class}">${type.name}</span>`;
-            visitorName.textContent = metadata.name || '--';
-            visitorObservations.textContent = metadata.observations || 'Nenhuma';
-            
-            // Mostrar/ocultar telefone
-            if (metadata.phone) {
-                visitorPhone.textContent = metadata.phone;
-                visitorPhoneItem.style.display = 'flex';
-            } else {
-                visitorPhoneItem.style.display = 'none';
-            }
-            
-            // Mostrar/ocultar empresa
-            if (metadata.company) {
-                visitorCompany.textContent = metadata.company;
-                visitorCompanyItem.style.display = 'flex';
-            } else {
-                visitorCompanyItem.style.display = 'none';
-            }
-            
-            // Mostrar/ocultar informações de entrega
-            if (metadata.deliveryDetails) {
-                let deliveryText = metadata.deliveryDetails;
-                if (metadata.deliveryType) {
-                    const deliveryTypes = {
-                        'correios': 'Correios',
-                        'mercado-livre': 'Mercado Livre',
-                        'shopee': 'Shopee',
-                        'food': 'Comida',
-                        'other': 'Outro'
-                    };
-                    deliveryText = `${deliveryTypes[metadata.deliveryType] || metadata.deliveryType}: ${deliveryText}`;
-                }
-                visitorDelivery.textContent = deliveryText;
-                visitorDeliveryItem.style.display = 'flex';
-            } else {
-                visitorDeliveryItem.style.display = 'none';
-            }
-            
-            // Mostrar painel de informações
-            visitorInfo.style.display = 'block';
-        }
-        
-        // Inicializar PeerJS
+        // Inicializar o Peer
         function initPeer() {
-            log('Inicializando PeerJS...');
-            
-            peer = new Peer(unitId, {
-                debug: 2,
-                config: {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' }
-                    ]
-                }
-            });
+            // Criar um novo peer com ID fixo
+            peer = new Peer(MORADOR_ID);
             
             peer.on('open', (id) => {
-                log(`Conectado com ID: ${id}`);
-                connectionStatus.innerHTML = '<span class="status-indicator status-online"></span>✅ Online';
-                peerIdSpan.textContent = id;
-                generateQR();
+                peerIdElement.textContent = id;
+                
+                // Gerar QR Code com o ID do peer
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${window.location.origin}/visitante.html?peer=${id}`;
+                qrCodeImg.src = qrUrl;
+                
+                connectionStatusElement.textContent = 'Aguardando conexão...';
+                connectionStatusElement.className = 'status-value disconnected';
+            });
+            
+            peer.on('connection', (connection) => {
+                connections.push(connection);
+                visitorCount++;
+                updateVisitorCount();
+                
+                connection.on('open', () => {
+                    connectionStatusElement.textContent = 'Visitante conectado!';
+                    connectionStatusElement.className = 'status-value connected';
+                });
+                
+                connection.on('close', () => {
+                    const index = connections.indexOf(connection);
+                    if (index !== -1) {
+                        connections.splice(index, 1);
+                    }
+                    
+                    visitorCount--;
+                    updateVisitorCount();
+                    
+                    if (connections.length === 0) {
+                        connectionStatusElement.textContent = 'Aguardando conexão...';
+                        connectionStatusElement.className = 'status-value disconnected';
+                    }
+                });
+            });
+            
+            peer.on('call', async (call) => {
+                // Mostrar notificação de chamada
+                callNotification.classList.add('show');
+                
+                // Tocar som de chamada
+                playRingtone();
+                
+                // Vibrar dispositivo (se suportado)
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([200, 100, 200]);
+                }
+                
+                // Armazenar a chamada atual
+                currentCall = call;
+                
+                // Configurar eventos da chamada
+                call.on('stream', (remoteStream) => {
+                    remoteVideo.srcObject = remoteStream;
+                });
+                
+                call.on('close', () => {
+                    endCall();
+                });
+                
+                call.on('error', (err) => {
+                    console.error('Erro na chamada:', err);
+                    endCall();
+                });
             });
             
             peer.on('error', (err) => {
-                log(`Erro: ${err.type} - ${err.message}`);
-                connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Erro: ' + err.message;
-            });
-            
-            peer.on('disconnected', () => {
-                log('Desconectado do servidor');
-                connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Desconectado';
-                
-                // Tentar reconectar após 5 segundos
-                setTimeout(() => {
-                    log('Tentando reconectar...');
-                    peer.reconnect();
-                }, 5000);
-            });
-            
-            peer.on('close', () => {
-                log('Conexão fechada');
-                connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Conexão fechada';
-            });
-            
-            peer.on('call', (call) => {
-                log(`Chamada recebida de: ${call.peer}`);
-                
-                // Mostrar notificação na tela
-                notification.style.display = 'block';
-                waitingScreen.style.display = 'none';
-                
-                // Exibir informações do visitante se disponíveis
-                if (call.metadata) {
-                    displayVisitorInfo(call.metadata);
-                }
-                
-                // Salvar referência
-                currentCall = call;
-                
-                // Configurar botão de atender
-                acceptBtn.onclick = async () => {
-                    log('Atendendo chamada...');
-                    
-                    // Esconder notificação
-                    notification.style.display = 'none';
-                    
-                    // Mostrar vídeo
-                    videoContainer.style.display = 'block';
-                    
-                    // Atender chamada
-                    call.answer(localStream);
-                    
-                    // Configurar recebimento de vídeo
-                    call.on('stream', (stream) => {
-                        log('Stream recebido do visitante');
-                        
-                        // Verificar tracks de vídeo
-                        const videoTracks = stream.getVideoTracks();
-                        log(`Tracks de vídeo: ${videoTracks.length}`);
-                        
-                        if (videoTracks.length > 0) {
-                            log('Configurando elemento de vídeo');
-                            remoteVideo.srcObject = stream;
-                            
-                            remoteVideo.onloadedmetadata = () => {
-                                log('Vídeo carregado com sucesso');
-                                remoteVideo.play().catch(e => {
-                                    log('Erro ao reproduzir vídeo: ' + e.message);
-                                });
-                            };
-                            
-                            remoteVideo.onerror = (e) => {
-                                log('Erro no elemento de vídeo: ' + e);
-                            };
-                        } else {
-                            log('Nenhum track de vídeo recebido');
-                        }
-                    });
-                    
-                    call.on('close', () => {
-                        log('Chamada encerrada');
-                        endCall();
-                    });
-                    
-                    call.on('error', (err) => {
-                        log(`Erro na chamada: ${err.message}`);
-                        endCall();
-                    });
-                };
-                
-                // Configurar botão de recusar
-                rejectBtn.onclick = () => {
-                    log('Recusando chamada');
-                    call.close();
-                    notification.style.display = 'none';
-                    waitingScreen.style.display = 'block';
-                };
+                console.error('Erro no peer:', err);
+                connectionStatusElement.textContent = `Erro: ${err.type}`;
+                connectionStatusElement.className = 'status-value disconnected';
             });
         }
         
-        // Encerrar chamada
-        function endCall() {
-            log('Encerrando chamada');
+        // Atualizar contador de visitantes
+        function updateVisitorCount() {
+            visitorCountElement.textContent = visitorCount;
+        }
+        
+        // Aceitar chamada
+        async function acceptCall() {
+            if (!currentCall) return;
             
-            if (remoteVideo.srcObject) {
-                remoteVideo.srcObject.getTracks().forEach(track => {
-                    track.stop();
-                    log('Parando track: ' + track.kind);
+            try {
+                // Obter stream local (áudio e vídeo)
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true, 
+                    audio: true 
                 });
-                remoteVideo.srcObject = null;
+                
+                // Exibir vídeo local
+                localVideo.srcObject = localStream;
+                
+                // Responder à chamada com o stream local
+                currentCall.answer(localStream);
+                
+                // Esconder notificação
+                callNotification.classList.remove('show');
+                
+                // Parar ringtone
+                stopRingtone();
+                
+                // Mostrar container de vídeo
+                videoContainer.classList.add('show');
+                
+                // Atualizar status
+                connectionStatusElement.textContent = 'Em chamada';
+                connectionStatusElement.className = 'status-value connected';
+                
+            } catch (err) {
+                console.error('Erro ao aceitar chamada:', err);
+                rejectCall();
             }
-            
-            videoContainer.style.display = 'none';
-            waitingScreen.style.display = 'block';
         }
         
-        // Botão de encerrar chamada
-        endCallBtn.addEventListener('click', () => {
+        // Rejeitar chamada
+        function rejectCall() {
             if (currentCall) {
                 currentCall.close();
+                currentCall = null;
             }
-            endCall();
-        });
+            
+            callNotification.classList.remove('show');
+            stopRingtone();
+        }
         
-        // Inicializar sistema
-        window.addEventListener('load', async () => {
-            log('Iniciando sistema...');
-            unitIdSpan.textContent = unitId;
+        // Finalizar chamada
+        function endCall() {
+            if (currentCall) {
+                currentCall.close();
+                currentCall = null;
+            }
             
-            // Inicializar microfone
-            const micOk = await initMicrophone();
-            if (!micOk) return;
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
             
-            // Inicializar Peer
-            initPeer();
-        });
+            localVideo.srcObject = null;
+            remoteVideo.srcObject = null;
+            
+            videoContainer.classList.remove('show');
+            stopRingtone();
+            
+            // Resetar botões
+            toggleAudioBtn.classList.remove('muted');
+            toggleVideoBtn.classList.remove('muted');
+            
+            // Atualizar status
+            if (connections.length > 0) {
+                connectionStatusElement.textContent = 'Visitante conectado!';
+                connectionStatusElement.className = 'status-value connected';
+            } else {
+                connectionStatusElement.textContent = 'Aguardando conexão...';
+                connectionStatusElement.className = 'status-value disconnected';
+            }
+        }
+        
+        // Alternar áudio
+        function toggleAudio() {
+            if (!localStream) return;
+            
+            const audioTrack = localStream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                toggleAudioBtn.classList.toggle('muted', !audioTrack.enabled);
+            }
+        }
+        
+        // Alternar vídeo
+        function toggleVideo() {
+            if (!localStream) return;
+            
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                toggleVideoBtn.classList.toggle('muted', !videoTrack.enabled);
+            }
+        }
+        
+        // Tocar ringtone
+        let ringtoneAudio;
+        function playRingtone() {
+            try {
+                ringtoneAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-classic-alarm-995.mp3');
+                ringtoneAudio.loop = true;
+                ringtoneAudio.play();
+            } catch (e) {
+                console.error('Erro ao reproduzir ringtone:', e);
+            }
+        }
+        
+        // Parar ringtone
+        function stopRingtone() {
+            if (ringtoneAudio) {
+                ringtoneAudio.pause();
+                ringtoneAudio = null;
+            }
+        }
+        
+        // Inicializar quando a página carregar
+        window.addEventListener('load', initPeer);
     </script>
 </body>
 </html>
