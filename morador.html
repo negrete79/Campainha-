@@ -73,6 +73,7 @@
             margin-bottom: 20px;
             display: none;
             animation: slideIn 0.5s ease-out;
+            position: relative;
         }
         
         @keyframes slideIn {
@@ -84,6 +85,25 @@
                 transform: translateY(0);
                 opacity: 1;
             }
+        }
+        
+        .notification h3 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification-sound {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
         }
         
         .call-container {
@@ -377,6 +397,7 @@
         <div class="notification" id="notification">
             <h3>🔔 Alguém está na sua porta!</h3>
             <p>Visitante aguardando atendimento</p>
+            <button class="notification-sound" onclick="playNotificationSound()">🔊 Tocar Novamente</button>
             <div class="debug-info" id="debugInfo"></div>
         </div>
         
@@ -464,6 +485,7 @@
         let isVideoOff = false;
         let isRecording = false;
         let visitHistory = JSON.parse(localStorage.getItem('visitHistory')) || [];
+        let notificationPermission = false;
         
         // Elementos da UI
         const notification = document.getElementById('notification');
@@ -496,6 +518,30 @@
             if (debugInfo) {
                 debugInfo.textContent += message + '\n';
                 debugInfo.scrollTop = debugInfo.scrollHeight;
+            }
+        }
+        
+        // Solicitar permissão de notificação
+        async function requestNotificationPermission() {
+            if ('Notification' in window) {
+                if (Notification.permission === 'default') {
+                    await Notification.requestPermission();
+                }
+                notificationPermission = Notification.permission === 'granted';
+            }
+        }
+        
+        // Mostrar notificação do sistema
+        function showSystemNotification(title, body) {
+            if (notificationPermission && 'Notification' in window) {
+                new Notification(title, {
+                    body: body,
+                    icon: 'https://seu-usuario.github.io/doorvi/icon.png',
+                    badge: 'https://seu-usuario.github.io/doorvi/icon.png',
+                    tag: 'doorvi-call',
+                    renotify: true,
+                    requireInteraction: true
+                });
             }
         }
         
@@ -567,16 +613,22 @@
             peer.on('call', (call) => {
                 log(`Chamada recebida de: ${call.peer}`);
                 
-                // Mostrar notificação
+                // Mostrar notificação na tela
                 showIncomingCall(call);
                 
-                // Auto-aceitar após 10 segundos
+                // Mostrar notificação do sistema
+                showSystemNotification('🔔 Nova visita na porta!', 'Alguém está tocando a campainha');
+                
+                // Tocar som de notificação
+                playNotificationSound();
+                
+                // Auto-aceitar após 15 segundos
                 setTimeout(() => {
                     if (callContainer.style.display !== 'block') {
                         log('Auto-aceitando chamada após timeout');
                         acceptCall(call);
                     }
-                }, 10000);
+                }, 15000);
             });
             
             peer.on('error', (err) => {
@@ -605,7 +657,6 @@
         function showIncomingCall(call) {
             log('Exibindo notificação de chamada');
             notification.style.display = 'block';
-            playNotificationSound();
             
             // Simular dados do visitante
             const visitorData = {
@@ -833,6 +884,9 @@
                 log('PeerJS não está disponível');
                 return;
             }
+            
+            // Solicitar permissão de notificação
+            await requestNotificationPermission();
             
             generateDoorbellQR();
             await initLocalCamera();
