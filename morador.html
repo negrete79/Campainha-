@@ -16,6 +16,7 @@
     <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
     
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     
     <!-- Estilos atualizados para um visual mais moderno e futurista -->
     <style>
@@ -365,6 +366,106 @@
             100% { opacity: 1; }
         }
         
+        /* Mensagem de erro */
+        .error-message {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            text-align: left;
+            display: none;
+        }
+        
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Informações do visitante */
+        .visitor-info {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        
+        .visitor-info h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            color: #00d2ff;
+        }
+        
+        .visitor-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .visitor-info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .visitor-info-label {
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .visitor-info-value {
+            color: #00d2ff;
+        }
+        
+        .visitor-type-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .type-friend {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+        
+        .type-delivery {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+        }
+        
+        .type-service {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+        }
+        
+        .type-sales {
+            background: rgba(155, 89, 182, 0.2);
+            color: #9b59b6;
+        }
+        
         /* Botão de instalação PWA */
         .install-btn {
             position: fixed;
@@ -423,38 +524,11 @@
         .permission-notice button:hover {
             transform: scale(1.05);
         }
-        
-        /* Mensagem de erro */
-        .error-message {
-            background: rgba(231, 76, 60, 0.2);
-            border-left: 4px solid #e74c3c;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 5px;
-            text-align: left;
-            display: none;
-        }
-        
-        .retry-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            margin-top: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .retry-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏠 Painel do Morador</h1>
+        <h1>🏠 Painel do Morador - Doorvi</h1>
         
         <div class="status glow">
             <div>
@@ -472,7 +546,7 @@
             <h3>QR Code da Sua Campainha</h3>
             <div class="qr-code" id="qrCode"></div>
             <div class="qr-info">Este QR Code é permanente e único para sua unidade</div>
-            <button class="btn" onclick="window.open('index.html', '_blank')">Ver Página do Visitante</button>
+            <button class="btn" onclick="window.open('visitante.html?unit=APT-101&resident=João Silva', '_blank')">Ver Página do Visitante</button>
         </div>
         
         <div class="error-message" id="errorMessage">
@@ -484,7 +558,34 @@
         
         <div class="notification" id="notification">
             <h3>🔔 Alguém está na sua porta!</h3>
-            <p>Visitante aguardando atendimento</p>
+            
+            <div class="visitor-info" id="visitorInfo">
+                <h3>Informações do Visitante</h3>
+                <div class="visitor-info-item">
+                    <span class="visitor-info-label">Tipo:</span>
+                    <span class="visitor-info-value" id="visitorType">--</span>
+                </div>
+                <div class="visitor-info-item">
+                    <span class="visitor-info-label">Nome:</span>
+                    <span class="visitor-info-value" id="visitorName">--</span>
+                </div>
+                <div class="visitor-info-item" id="visitorPhoneItem" style="display: none;">
+                    <span class="visitor-info-label">Telefone:</span>
+                    <span class="visitor-info-value" id="visitorPhone">--</span>
+                </div>
+                <div class="visitor-info-item" id="visitorCompanyItem" style="display: none;">
+                    <span class="visitor-info-label">Empresa:</span>
+                    <span class="visitor-info-value" id="visitorCompany">--</span>
+                </div>
+                <div class="visitor-info-item" id="visitorDeliveryItem" style="display: none;">
+                    <span class="visitor-info-label">Entrega:</span>
+                    <span class="visitor-info-value" id="visitorDelivery">--</span>
+                </div>
+                <div class="visitor-info-item">
+                    <span class="visitor-info-label">Observações:</span>
+                    <span class="visitor-info-value" id="visitorObservations">--</span>
+                </div>
+            </div>
             
             <div class="notification-buttons">
                 <button class="btn btn-accept glow" id="acceptBtn">✅ Atender</button>
@@ -520,7 +621,6 @@
         <button id="enableNotificationsBtn">Permitir</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
         // Configuração
         const unitId = "APT-101";
@@ -546,6 +646,18 @@
         const errorText = document.getElementById('errorText');
         const retryBtn = document.getElementById('retryBtn');
         
+        // Elementos de informações do visitante
+        const visitorInfo = document.getElementById('visitorInfo');
+        const visitorType = document.getElementById('visitorType');
+        const visitorName = document.getElementById('visitorName');
+        const visitorPhoneItem = document.getElementById('visitorPhoneItem');
+        const visitorPhone = document.getElementById('visitorPhone');
+        const visitorCompanyItem = document.getElementById('visitorCompanyItem');
+        const visitorCompany = document.getElementById('visitorCompany');
+        const visitorDeliveryItem = document.getElementById('visitorDeliveryItem');
+        const visitorDelivery = document.getElementById('visitorDelivery');
+        const visitorObservations = document.getElementById('visitorObservations');
+        
         // Variáveis
         let localStream;
         let currentCall;
@@ -553,6 +665,8 @@
         let deferredPrompt;
         let isNotificationPermissionGranted = false;
         let qrGenerated = false;
+        let connectionAttempts = 0;
+        const maxConnectionAttempts = 3;
         
         // Função de log
         function log(message, element = globalDebug) {
@@ -636,7 +750,7 @@
         function registerServiceWorker() {
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/service-worker.js')
+                    navigator.serviceWorker.register('./service-worker.js')
                         .then(registration => {
                             log('Service Worker registrado com sucesso: ' + registration.scope);
                         })
@@ -673,14 +787,18 @@
         // Enviar notificação
         function sendNotification(title, options) {
             if (isNotificationPermissionGranted && 'Notification' in window) {
-                const notification = new Notification(title, options);
-                
-                notification.onclick = () => {
-                    window.focus();
-                    notification.close();
-                };
-                
-                log('Notificação enviada: ' + title);
+                try {
+                    const notification = new Notification(title, options);
+                    
+                    notification.onclick = () => {
+                        window.focus();
+                        notification.close();
+                    };
+                    
+                    log('Notificação enviada: ' + title);
+                } catch (e) {
+                    log('Erro ao enviar notificação: ' + e.message);
+                }
             }
         }
         
@@ -719,17 +837,84 @@
             errorMessage.style.display = 'none';
         }
         
+        // Exibir informações do visitante
+        function displayVisitorInfo(metadata) {
+            if (!metadata) return;
+            
+            // Mapear tipos para nomes amigáveis e classes CSS
+            const typeInfo = {
+                'friend': { name: 'Amigo/Parente', class: 'type-friend' },
+                'delivery': { name: 'Entrega', class: 'type-delivery' },
+                'service': { name: 'Serviço', class: 'type-service' },
+                'sales': { name: 'Vendedor', class: 'type-sales' }
+            };
+            
+            const type = typeInfo[metadata.type] || { name: metadata.type, class: '' };
+            
+            // Preencher informações básicas
+            visitorType.innerHTML = type.name + `<span class="visitor-type-badge ${type.class}">${type.name}</span>`;
+            visitorName.textContent = metadata.name || '--';
+            visitorObservations.textContent = metadata.observations || 'Nenhuma';
+            
+            // Mostrar/ocultar telefone
+            if (metadata.phone) {
+                visitorPhone.textContent = metadata.phone;
+                visitorPhoneItem.style.display = 'flex';
+            } else {
+                visitorPhoneItem.style.display = 'none';
+            }
+            
+            // Mostrar/ocultar empresa
+            if (metadata.company) {
+                visitorCompany.textContent = metadata.company;
+                visitorCompanyItem.style.display = 'flex';
+            } else {
+                visitorCompanyItem.style.display = 'none';
+            }
+            
+            // Mostrar/ocultar informações de entrega
+            if (metadata.deliveryDetails) {
+                let deliveryText = metadata.deliveryDetails;
+                if (metadata.deliveryType) {
+                    const deliveryTypes = {
+                        'correios': 'Correios',
+                        'mercado-livre': 'Mercado Livre',
+                        'shopee': 'Shopee',
+                        'food': 'Comida',
+                        'other': 'Outro'
+                    };
+                    deliveryText = `${deliveryTypes[metadata.deliveryType] || metadata.deliveryType}: ${deliveryText}`;
+                }
+                visitorDelivery.textContent = deliveryText;
+                visitorDeliveryItem.style.display = 'flex';
+            } else {
+                visitorDeliveryItem.style.display = 'none';
+            }
+            
+            // Mostrar painel de informações
+            visitorInfo.style.display = 'block';
+        }
+        
         // Inicializar PeerJS
         function initPeer() {
-            log('Inicializando PeerJS...');
+            connectionAttempts++;
+            log(`Tentativa de conexão #${connectionAttempts}...`);
             hideError();
+            
+            // Destruir instância anterior se existir
+            if (peer) {
+                peer.destroy();
+            }
             
             peer = new Peer(unitId, {
                 debug: 2,
                 config: {
                     iceServers: [
                         { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' }
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' }
                     ]
                 }
             });
@@ -739,6 +924,7 @@
                 connectionStatus.innerHTML = '<span class="status-indicator status-online"></span>✅ Online';
                 peerIdSpan.textContent = id;
                 generateQR();
+                connectionAttempts = 0; // Resetar contador após conexão bem-sucedida
             });
             
             peer.on('error', (err) => {
@@ -753,189 +939,15 @@
                 } else {
                     showError(`Erro: ${err.message}`);
                 }
+                
+                // Tentar reconectar se não excedeu o número máximo de tentativas
+                if (connectionAttempts < maxConnectionAttempts) {
+                    setTimeout(() => {
+                        log('Tentando reconectar...');
+                        initPeer();
+                    }, 5000);
+                }
             });
             
             peer.on('disconnected', () => {
-                log('Desconectado do servidor');
-                connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Desconectado';
-                
-                // Tentar reconectar após 5 segundos
-                setTimeout(() => {
-                    log('Tentando reconectar...');
-                    peer.reconnect();
-                }, 5000);
-            });
-            
-            peer.on('close', () => {
-                log('Conexão fechada');
-                connectionStatus.innerHTML = '<span class="status-indicator status-offline"></span>❌ Conexão fechada';
-            });
-            
-            peer.on('call', (call) => {
-                log(`Chamada recebida de: ${call.peer}`);
-                
-                // Enviar notificação mesmo se o app estiver em segundo plano
-                sendNotification('Doorvi - Alguém está na sua porta!', {
-                    body: 'Visitante aguardando atendimento',
-                    icon: '/icons/icon-192x192.png',
-                    badge: '/icons/badge-72x72.png',
-                    tag: 'doorvi-visitor',
-                    requireInteraction: true,
-                    actions: [
-                        { action: 'accept', title: 'Atender' },
-                        { action: 'reject', title: 'Recusar' }
-                    ]
-                });
-                
-                // Mostrar notificação na tela
-                notification.style.display = 'block';
-                waitingScreen.style.display = 'none';
-                
-                // Tocar som
-                playNotificationSound();
-                
-                // Salvar referência
-                currentCall = call;
-                
-                // Configurar botão de atender
-                acceptBtn.onclick = async () => {
-                    log('Atendendo chamada...');
-                    
-                    // Esconder notificação
-                    notification.style.display = 'none';
-                    
-                    // Mostrar vídeo
-                    videoContainer.style.display = 'block';
-                    
-                    // Atender chamada
-                    call.answer(localStream);
-                    
-                    // Configurar recebimento de vídeo
-                    call.on('stream', (stream) => {
-                        log('Stream recebido do visitante');
-                        
-                        // Verificar tracks de vídeo
-                        const videoTracks = stream.getVideoTracks();
-                        log(`Tracks de vídeo: ${videoTracks.length}`);
-                        
-                        if (videoTracks.length > 0) {
-                            log('Configurando elemento de vídeo');
-                            remoteVideo.srcObject = stream;
-                            
-                            remoteVideo.onloadedmetadata = () => {
-                                log('Vídeo carregado com sucesso');
-                                remoteVideo.play().catch(e => {
-                                    log('Erro ao reproduzir vídeo: ' + e.message);
-                                });
-                            };
-                            
-                            remoteVideo.onerror = (e) => {
-                                log('Erro no elemento de vídeo: ' + e);
-                            };
-                        } else {
-                            log('Nenhum track de vídeo recebido');
-                        }
-                    });
-                    
-                    call.on('close', () => {
-                        log('Chamada encerrada');
-                        endCall();
-                    });
-                    
-                    call.on('error', (err) => {
-                        log(`Erro na chamada: ${err.message}`);
-                        endCall();
-                    });
-                };
-                
-                // Configurar botão de recusar
-                rejectBtn.onclick = () => {
-                    log('Recusando chamada');
-                    call.close();
-                    notification.style.display = 'none';
-                    waitingScreen.style.display = 'block';
-                };
-            });
-        }
-        
-        // Encerrar chamada
-        function endCall() {
-            log('Encerrando chamada');
-            
-            if (remoteVideo.srcObject) {
-                remoteVideo.srcObject.getTracks().forEach(track => {
-                    track.stop();
-                    log('Parando track: ' + track.kind);
-                });
-                remoteVideo.srcObject = null;
-            }
-            
-            videoContainer.style.display = 'none';
-            waitingScreen.style.display = 'block';
-        }
-        
-        // Botão de encerrar chamada
-        endCallBtn.addEventListener('click', () => {
-            if (currentCall) {
-                currentCall.close();
-            }
-            endCall();
-        });
-        
-        // Botão de tentar novamente
-        retryBtn.addEventListener('click', () => {
-            if (peer) {
-                peer.destroy();
-            }
-            initPeer();
-        });
-        
-        // Inicializar sistema
-        window.addEventListener('load', async () => {
-            log('Iniciando sistema...');
-            unitIdSpan.textContent = unitId;
-            
-            // Registrar Service Worker
-            registerServiceWorker();
-            
-            // Solicitar permissão de notificação
-            requestNotificationPermission();
-            
-            // Configurar botão de instalação
-            setupInstallButton();
-            
-            // Inicializar microfone
-            const micOk = await initMicrophone();
-            if (!micOk) return;
-            
-            // Inicializar Peer
-            initPeer();
-        });
-        
-        // Lidar com notificações quando o app está em segundo plano
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.addEventListener('message', event => {
-                if (event.data && event.data.type === 'NOTIFICATION_ACTION') {
-                    const action = event.data.action;
-                    
-                    if (action === 'accept' && currentCall) {
-                        // Simular clique no botão de aceitar
-                        acceptBtn.click();
-                    } else if (action === 'reject' && currentCall) {
-                        // Simular clique no botão de rejeitar
-                        rejectBtn.click();
-                    }
-                }
-            });
-        }
-        
-        // Verificar status da conexão periodicamente
-        setInterval(() => {
-            if (peer && peer.disconnected) {
-                log('Detectada desconexão, tentando reconectar...');
-                peer.reconnect();
-            }
-        }, 30000); // Verificar a cada 30 segundos
-    </script>
-</body>
-</html>
+                log('Des

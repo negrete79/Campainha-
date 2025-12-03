@@ -350,28 +350,109 @@
             background: rgba(255, 255, 255, 0.2);
         }
         
-        /* Formulário de informações do visitante */
-        .visitor-form {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            text-align: left;
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
         }
         
-        .visitor-form h3 {
-            font-size: 1.5em;
+        .modal-content {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            animation: modalSlideIn 0.4s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .close:hover {
+            color: #fff;
+        }
+        
+        .modal h2 {
             margin-bottom: 20px;
+            text-align: center;
+            color: #00d2ff;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+        
+        .visitor-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .visitor-type {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
             text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .visitor-type:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #00d2ff;
+            transform: translateY(-5px);
+        }
+        
+        .visitor-type.selected {
+            background: rgba(0, 210, 255, 0.2);
+            border-color: #00d2ff;
+        }
+        
+        .visitor-type-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .visitor-type-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .visitor-type-desc {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.7);
         }
         
         .form-group {
             margin-bottom: 20px;
+            text-align: left;
         }
         
         .form-group label {
@@ -405,6 +486,94 @@
             resize: vertical;
             min-height: 80px;
         }
+        
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .btn-cancel {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .btn-cancel:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(231, 76, 60, 0.6);
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(46, 204, 113, 0.6);
+        }
+        
+        .company-info {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .delivery-info {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .visitor-info-display {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .visitor-info-display h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #00d2ff;
+        }
+        
+        .visitor-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .visitor-info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .visitor-info-label {
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .visitor-info-value {
+            color: #00d2ff;
+        }
     </style>
 </head>
 <body>
@@ -426,31 +595,34 @@
         <div class="info-panel glow">
             <h3>Informações da Visita</h3>
             <p>Você está prestes a chamar a unidade <span id="unitDisplay">--</span>.</p>
-            <p>Por favor, preencha suas informações antes de iniciar a chamada.</p>
+            <p>Clique no botão abaixo para identificar-se e iniciar a chamada.</p>
         </div>
         
-        <div class="visitor-form glow" id="visitorForm">
-            <h3>Identifique-se</h3>
-            <div class="form-group">
-                <label for="visitorName">Seu Nome</label>
-                <input type="text" id="visitorName" placeholder="Digite seu nome completo" required>
+        <div class="visitor-info-display" id="visitorInfoDisplay">
+            <h3>Informações do Visitante</h3>
+            <div class="visitor-info-item">
+                <span class="visitor-info-label">Tipo:</span>
+                <span class="visitor-info-value" id="displayVisitorType">--</span>
             </div>
-            <div class="form-group">
-                <label for="visitReason">Motivo da Visita</label>
-                <select id="visitReason">
-                    <option value="">Selecione um motivo</option>
-                    <option value="entrega">Entrega</option>
-                    <option value="visita">Visita</option>
-                    <option value="servico">Serviço</option>
-                    <option value="outro">Outro</option>
-                </select>
+            <div class="visitor-info-item">
+                <span class="visitor-info-label">Nome:</span>
+                <span class="visitor-info-value" id="displayVisitorName">--</span>
             </div>
-            <div class="form-group">
-                <label for="additionalInfo">Informações Adicionais (opcional)</label>
-                <textarea id="additionalInfo" placeholder="Ex: Entregando pacote para Sr. Silva"></textarea>
+            <div class="visitor-info-item" id="displayCompanyItem" style="display: none;">
+                <span class="visitor-info-label">Empresa:</span>
+                <span class="visitor-info-value" id="displayCompanyName">--</span>
             </div>
-            <button class="btn btn-call glow" id="startCallBtn">📞 Iniciar Chamada</button>
+            <div class="visitor-info-item" id="displayDeliveryItem" style="display: none;">
+                <span class="visitor-info-label">Entrega:</span>
+                <span class="visitor-info-value" id="displayDeliveryInfo">--</span>
+            </div>
+            <div class="visitor-info-item">
+                <span class="visitor-info-label">Observações:</span>
+                <span class="visitor-info-value" id="displayObservations">--</span>
+            </div>
         </div>
+        
+        <button class="btn btn-call glow" id="identifyBtn">👤 Identificar-se</button>
         
         <div class="error-message" id="errorMessage">
             <strong>Erro:</strong> <span id="errorText"></span>
@@ -477,6 +649,84 @@
         
         <div class="debug" id="globalDebug"></div>
     </div>
+    
+    <!-- Modal de Identificação -->
+    <div id="visitorModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Identifique-se</h2>
+            
+            <div class="visitor-types">
+                <div class="visitor-type" data-type="friend">
+                    <div class="visitor-type-icon">👥</div>
+                    <div class="visitor-type-label">Amigo/Parente</div>
+                    <div class="visitor-type-desc">Visita pessoal</div>
+                </div>
+                <div class="visitor-type" data-type="delivery">
+                    <div class="visitor-type-icon">📦</div>
+                    <div class="visitor-type-label">Entrega</div>
+                    <div class="visitor-type-desc">Correios, Mercado Livre, etc</div>
+                </div>
+                <div class="visitor-type" data-type="service">
+                    <div class="visitor-type-icon">🔧</div>
+                    <div class="visitor-type-label">Serviço</div>
+                    <div class="visitor-type-desc">Manutenção, limpeza</div>
+                </div>
+                <div class="visitor-type" data-type="sales">
+                    <div class="visitor-type-icon">💼</div>
+                    <div class="visitor-type-label">Vendedor</div>
+                    <div class="visitor-type-desc">Representante comercial</div>
+                </div>
+            </div>
+            
+            <form id="visitorForm">
+                <div class="form-group">
+                    <label for="visitorName">Seu Nome Completo</label>
+                    <input type="text" id="visitorName" placeholder="Digite seu nome completo" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="visitorPhone">Seu Telefone (opcional)</label>
+                    <input type="tel" id="visitorPhone" placeholder="(XX) XXXXX-XXXX">
+                </div>
+                
+                <div class="company-info" id="companyInfo">
+                    <div class="form-group">
+                        <label for="companyName">Nome da Empresa</label>
+                        <input type="text" id="companyName" placeholder="Nome da empresa que representa">
+                    </div>
+                </div>
+                
+                <div class="delivery-info" id="deliveryInfo">
+                    <div class="form-group">
+                        <label for="deliveryType">Tipo de Entrega</label>
+                        <select id="deliveryType">
+                            <option value="">Selecione o tipo</option>
+                            <option value="correios">Correios</option>
+                            <option value="mercado-livre">Mercado Livre</option>
+                            <option value="shopee">Shopee</option>
+                            <option value="food">Comida</option>
+                            <option value="other">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryDetails">Detalhes da Entrega</label>
+                        <input type="text" id="deliveryDetails" placeholder="Ex: Pacote para João Silva">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="observations">Observações (opcional)</label>
+                    <textarea id="observations" placeholder="Informações adicionais para o morador"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-submit">Iniciar Chamada</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
         // Obter parâmetros da URL
@@ -489,11 +739,7 @@
         const unitIdSpan = document.getElementById('unitId');
         const residentNameSpan = document.getElementById('residentName');
         const unitDisplay = document.getElementById('unitDisplay');
-        const visitorForm = document.getElementById('visitorForm');
-        const visitorNameInput = document.getElementById('visitorName');
-        const visitReasonSelect = document.getElementById('visitReason');
-        const additionalInfoInput = document.getElementById('additionalInfo');
-        const startCallBtn = document.getElementById('startCallBtn');
+        const identifyBtn = document.getElementById('identifyBtn');
         const waitingScreen = document.getElementById('waitingScreen');
         const videoContainer = document.getElementById('videoContainer');
         const localVideo = document.getElementById('localVideo');
@@ -504,6 +750,25 @@
         const errorText = document.getElementById('errorText');
         const retryBtn = document.getElementById('retryBtn');
         
+        // Elementos do Modal
+        const modal = document.getElementById('visitorModal');
+        const closeBtn = document.querySelector('.close');
+        const cancelBtnModal = document.getElementById('cancelBtn');
+        const visitorForm = document.getElementById('visitorForm');
+        const visitorTypes = document.querySelectorAll('.visitor-type');
+        const companyInfo = document.getElementById('companyInfo');
+        const deliveryInfo = document.getElementById('deliveryInfo');
+        
+        // Elementos de exibição de informações
+        const visitorInfoDisplay = document.getElementById('visitorInfoDisplay');
+        const displayVisitorType = document.getElementById('displayVisitorType');
+        const displayVisitorName = document.getElementById('displayVisitorName');
+        const displayCompanyItem = document.getElementById('displayCompanyItem');
+        const displayCompanyName = document.getElementById('displayCompanyName');
+        const displayDeliveryItem = document.getElementById('displayDeliveryItem');
+        const displayDeliveryInfo = document.getElementById('displayDeliveryInfo');
+        const displayObservations = document.getElementById('displayObservations');
+        
         // Variáveis
         let localStream;
         let currentCall;
@@ -511,6 +776,8 @@
         let callTimeout;
         let connectionAttempts = 0;
         const maxConnectionAttempts = 3;
+        let selectedVisitorType = '';
+        let visitorData = {};
         
         // Função de log
         function log(message, element = globalDebug) {
@@ -566,7 +833,9 @@
                     iceServers: [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' }
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' }
                     ]
                 }
             });
@@ -617,17 +886,11 @@
         
         // Iniciar chamada
         async function startCall() {
-            // Validar formulário
-            const visitorName = visitorNameInput.value.trim();
-            if (!visitorName) {
-                showError('Por favor, informe seu nome');
-                return;
-            }
-            
             log('Iniciando chamada...');
             
-            // Esconder formulário
-            visitorForm.style.display = 'none';
+            // Esconder formulário e informações
+            modal.style.display = 'none';
+            visitorInfoDisplay.style.display = 'none';
             
             // Mostrar tela de espera
             waitingScreen.style.display = 'block';
@@ -636,7 +899,6 @@
             if (!localStream) {
                 const cameraOk = await initCamera();
                 if (!cameraOk) {
-                    visitorForm.style.display = 'block';
                     waitingScreen.style.display = 'none';
                     return;
                 }
@@ -645,11 +907,7 @@
             // Fazer chamada para o morador
             try {
                 currentCall = peer.call(unitId, localStream, {
-                    metadata: {
-                        visitorName: visitorName,
-                        visitReason: visitReasonSelect.value,
-                        additionalInfo: additionalInfoInput.value.trim()
-                    }
+                    metadata: visitorData
                 });
                 
                 if (!currentCall) {
@@ -699,7 +957,6 @@
             } catch (err) {
                 log('Erro ao iniciar chamada: ' + err.message);
                 showError('Não foi possível iniciar a chamada. Verifique se o morador está online.');
-                visitorForm.style.display = 'block';
                 waitingScreen.style.display = 'none';
             }
         }
@@ -719,7 +976,7 @@
             }
             
             waitingScreen.style.display = 'none';
-            visitorForm.style.display = 'block';
+            identifyBtn.style.display = 'inline-block';
         }
         
         // Encerrar chamada
@@ -745,11 +1002,139 @@
             }
             
             videoContainer.style.display = 'none';
-            visitorForm.style.display = 'block';
+            identifyBtn.style.display = 'inline-block';
         }
         
-        // Botão de iniciar chamada
-        startCallBtn.addEventListener('click', startCall);
+        // Event Listeners
+        
+        // Botão de identificar
+        identifyBtn.addEventListener('click', () => {
+            modal.style.display = 'block';
+        });
+        
+        // Fechar modal
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        cancelBtnModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        // Clicar fora do modal fecha
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        // Seleção de tipo de visitante
+        visitorTypes.forEach(type => {
+            type.addEventListener('click', () => {
+                // Remover seleção anterior
+                visitorTypes.forEach(t => t.classList.remove('selected'));
+                
+                // Adicionar seleção ao clicado
+                type.classList.add('selected');
+                selectedVisitorType = type.dataset.type;
+                
+                // Mostrar/ocultar campos específicos
+                if (selectedVisitorType === 'sales') {
+                    companyInfo.style.display = 'block';
+                    deliveryInfo.style.display = 'none';
+                } else if (selectedVisitorType === 'delivery') {
+                    companyInfo.style.display = 'none';
+                    deliveryInfo.style.display = 'block';
+                } else {
+                    companyInfo.style.display = 'none';
+                    deliveryInfo.style.display = 'none';
+                }
+            });
+        });
+        
+        // Envio do formulário
+        visitorForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!selectedVisitorType) {
+                alert('Por favor, selecione o tipo de visita.');
+                return;
+            }
+            
+            // Coletar dados do formulário
+            visitorData = {
+                type: selectedVisitorType,
+                name: document.getElementById('visitorName').value,
+                phone: document.getElementById('visitorPhone').value,
+                observations: document.getElementById('observations').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Adicionar dados específicos por tipo
+            if (selectedVisitorType === 'sales') {
+                visitorData.company = document.getElementById('companyName').value;
+            } else if (selectedVisitorType === 'delivery') {
+                visitorData.deliveryType = document.getElementById('deliveryType').value;
+                visitorData.deliveryDetails = document.getElementById('deliveryDetails').value;
+            }
+            
+            // Exibir informações do visitante
+            displayVisitorInfo();
+            
+            // Fechar modal
+            modal.style.display = 'none';
+            
+            // Iniciar chamada
+            await startCall();
+        });
+        
+        // Exibir informações do visitante
+        function displayVisitorInfo() {
+            // Mapear tipos para nomes amigáveis
+            const typeNames = {
+                'friend': 'Amigo/Parente',
+                'delivery': 'Entrega',
+                'service': 'Serviço',
+                'sales': 'Vendedor'
+            };
+            
+            // Preencher informações
+            displayVisitorType.textContent = typeNames[visitorData.type] || visitorData.type;
+            displayVisitorName.textContent = visitorData.name;
+            displayObservations.textContent = visitorData.observations || 'Nenhuma';
+            
+            // Mostrar/ocultar informações específicas
+            if (visitorData.company) {
+                displayCompanyName.textContent = visitorData.company;
+                displayCompanyItem.style.display = 'flex';
+            } else {
+                displayCompanyItem.style.display = 'none';
+            }
+            
+            if (visitorData.deliveryDetails) {
+                let deliveryText = visitorData.deliveryDetails;
+                if (visitorData.deliveryType) {
+                    const deliveryTypes = {
+                        'correios': 'Correios',
+                        'mercado-livre': 'Mercado Livre',
+                        'shopee': 'Shopee',
+                        'food': 'Comida',
+                        'other': 'Outro'
+                    };
+                    deliveryText = `${deliveryTypes[visitorData.deliveryType] || visitorData.deliveryType}: ${deliveryText}`;
+                }
+                displayDeliveryInfo.textContent = deliveryText;
+                displayDeliveryItem.style.display = 'flex';
+            } else {
+                displayDeliveryItem.style.display = 'none';
+            }
+            
+            // Mostrar painel de informações
+            visitorInfoDisplay.style.display = 'block';
+            
+            // Esconder botão de identificação
+            identifyBtn.style.display = 'none';
+        }
         
         // Botão de cancelar chamada
         cancelCallBtn.addEventListener('click', cancelCall);
