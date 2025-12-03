@@ -344,6 +344,16 @@
             overflow-y: auto;
         }
         
+        .network-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
         @media (max-width: 768px) {
             .controls {
                 flex-direction: column;
@@ -367,6 +377,11 @@
         <div class="header">
             <h1>🏠 Painel do Morador</h1>
             <p>Sistema de Campainha Inteligente Doorvi</p>
+        </div>
+        
+        <div class="network-info">
+            <strong>🌐 Funciona em qualquer rede!</strong><br>
+            Não precisa estar na mesma Wi-Fi - funciona via internet
         </div>
         
         <div class="status-bar">
@@ -646,13 +661,8 @@
                 // Iniciar som de telefone insistente
                 startRinging();
                 
-                // Auto-aceitar após 20 segundos
-                setTimeout(() => {
-                    if (callContainer.style.display !== 'block') {
-                        log('Auto-aceitando chamada após timeout');
-                        acceptCall(call);
-                    }
-                }, 20000);
+                // NÃO auto-aceitar - esperar o botão atender
+                log('Aguardando botão atender...');
             });
             
             peer.on('error', (err) => {

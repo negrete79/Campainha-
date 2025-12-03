@@ -217,6 +217,16 @@
             overflow-y: auto;
         }
         
+        .network-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
         @media (max-width: 480px) {
             .container {
                 padding: 20px;
@@ -241,6 +251,11 @@
             <p id="residentDisplay">Carregando...</p>
         </div>
         
+        <div class="network-info">
+            <strong>🌐 Funciona em qualquer rede!</strong><br>
+            Não precisa estar na mesma Wi-Fi - funciona via internet
+        </div>
+        
         <div class="status" id="status">
             <p>Iniciando chamada...</p>
             <div class="loading-dots">
@@ -263,6 +278,10 @@
         
         <div class="video-container" id="videoContainer">
             <div class="video-box">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div class="video-label">Você</div>
+            </div>
+            <div class="video-box">
                 <video id="remoteVideo" autoplay playsinline></video>
                 <div class="video-label">Morador</div>
             </div>
@@ -270,6 +289,7 @@
         
         <div class="controls" id="controls">
             <button class="control-btn" id="muteBtn">🔇</button>
+            <button class="control-btn" id="videoBtn">📹</button>
             <button class="control-btn" id="switchCameraBtn">🔄</button>
         </div>
         
@@ -294,6 +314,7 @@
         let currentCall;
         let peer;
         let isMuted = false;
+        let isVideoOff = false;
         let facingMode = 'user';
         let callAttempted = false;
         
@@ -303,8 +324,10 @@
         const controls = document.getElementById('controls');
         const connected = document.getElementById('connected');
         const visitorInfo = document.getElementById('visitorInfo');
+        const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
         const muteBtn = document.getElementById('muteBtn');
+        const videoBtn = document.getElementById('videoBtn');
         const switchCameraBtn = document.getElementById('switchCameraBtn');
         const cancelBtn = document.getElementById('cancelBtn');
         const debugInfo = document.getElementById('debugInfo');
@@ -351,7 +374,7 @@
             
             try {
                 status.innerHTML = `
-                    <p>📱 Acessando microfone...</p>
+                    <p>📱 Acessando câmera e microfone...</p>
                     <div class="loading-dots">
                         <span></span>
                         <span></span>
@@ -359,13 +382,14 @@
                     </div>
                 `;
                 
-                // Obter mídia local - apenas áudio (visitante não envia vídeo)
-                log('Solicitando acesso ao microfone...');
+                // Obter mídia local - vídeo e áudio (visitante envia ambos)
+                log('Solicitando acesso à câmera e microfone...');
                 localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: false,  // Visitante não envia vídeo
+                    video: { facingMode: facingMode },  // Visitante envia vídeo
                     audio: true 
                 });
-                log('Microfone acessado com sucesso');
+                localVideo.srcObject = localStream;
+                log('Câmera e microfone acessados com sucesso');
                 
                 status.innerHTML = `
                     <p>🔔 Chamando o morador...</p>
@@ -454,7 +478,7 @@
             } catch (err) {
                 log('Erro ao iniciar chamada: ' + err.message);
                 status.innerHTML = `
-                    <p>❌ Erro ao acessar microfone</p>
+                    <p>❌ Erro ao acessar câmera</p>
                     <p style="font-size: 0.9em; opacity: 0.8;">Verifique as permissões do navegador</p>
                 `;
             }
@@ -493,12 +517,47 @@
             log('Áudio ' + (isMuted ? 'desligado' : 'ligado'));
         });
         
+        videoBtn.addEventListener('click', () => {
+            isVideoOff = !isVideoOff;
+            if (localStream) {
+                localStream.getVideoTracks().forEach(track => {
+                    track.enabled = !isVideoOff;
+                });
+            }
+            videoBtn.classList.toggle('active', isVideoOff);
+            videoBtn.textContent = isVideoOff ? '📹' : '📹';
+            log('Vídeo ' + (isVideoOff ? 'desligado' : 'ligado'));
+        });
+        
         switchCameraBtn.addEventListener('click', async () => {
             log('Trocando câmera...');
             facingMode = facingMode === 'user' ? 'environment' : 'user';
             
-            // Visitante não envia vídeo, então este botão não faz nada
-            log('Visitante não envia vídeo, câmera não disponível');
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: facingMode }, 
+                    audio: true 
+                });
+                localVideo.srcObject = localStream;
+                
+                // Atualizar track na chamada atual
+                if (currentCall) {
+                    const sender = currentCall.peerConnection.getSenders().find(s => 
+                        s.track && s.track.kind === 'video'
+                    );
+                    if (sender) {
+                        sender.replaceTrack(localStream.getVideoTracks()[0]);
+                    }
+                }
+                log('Câmera trocada com sucesso');
+            } catch (err) {
+                log('Erro ao trocar câmera: ' + err.message);
+                facingMode = facingMode === 'user' ? 'environment' : 'user';
+            }
         });
         
         // Cancelar chamada
@@ -536,6 +595,7 @@
             }
             
             // Limpar elementos de vídeo
+            localVideo.srcObject = null;
             remoteVideo.srcObject = null;
             
             // Resetar UI imediatamente
@@ -551,6 +611,7 @@
             remoteStream = null;
             callAttempted = false;
             isMuted = false;
+            isVideoOff = false;
             
             log('Chamada encerrada e sistema resetado');
             
