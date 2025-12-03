@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chamando... - Doorvi</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/peerjs.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .calling-animation {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .unit-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .unit-info h2 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        
+        .status {
+            font-size: 1.2em;
+            margin: 20px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .loading-dots {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: loading 1.4s infinite;
+        }
+        
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes loading {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        .video-container {
+            display: none;
+            margin: 20px 0;
+            width: 100%;
+        }
+        
+        .video-box {
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            margin-bottom: 15px;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        
+        .controls {
+            display: none;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .control-btn.active {
+            background: #ff6b6b;
+        }
+        
+        .cancel-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1em;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .cancel-btn:hover {
+            background: #ff3742;
+        }
+        
+        .connected {
+            display: none;
+            background: rgba(46, 204, 113, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .connected h3 {
+            color: #2ecc71;
+            margin-bottom: 5px;
+        }
+        
+        .visitor-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .visitor-info input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .calling-animation {
+                font-size: 3em;
+            }
+            
+            .unit-info h2 {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calling-animation">📞</div>
+        
+        <div class="unit-info">
+            <h2 id="unitDisplay">Carregando...</h2>
+            <p id="residentDisplay">Carregando...</p>
+        </div>
+        
+        <div class="status" id="status">
+            <p>Iniciando chamada...</p>
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="connected" id="connected">
+            <h3>✅ Chamada Conectada!</h3>
+            <p>Você está em chamada de vídeo com o morador</p>
+        </div>
+        
+        <div class="visitor-info" id="visitorInfo">
+            <p style="margin-bottom: 10px;">Informações para o morador (opcional):</p>
+            <input type="text" id="visitorName" placeholder="Seu nome" value="Visitante">
+            <input type="text" id="visitorReason" placeholder="Motivo da visita" value="Visita">
+        </div>
+        
+        <div class="video-container" id="videoContainer">
+            <div class="video-box">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div class="video-label">Você</div>
+            </div>
+            <div class="video-box">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div class="video-label">Morador</div>
+            </div>
+        </div>
+        
+        <div class="controls" id="controls">
+            <button class="control-btn" id="muteBtn">🔇</button>
+            <button class="control-btn" id="videoBtn">📹</button>
+            <button class="control-btn" id="switchCameraBtn">🔄</button>
+        </div>
+        
+        <button class="cancel-btn" id="cancelBtn" onclick="cancelCall()">❌ Cancelar Chamada</button>
+    </div>
+
+    <script>
+        // Configuração
+        let localStream;
+        let remoteStream;
+        let currentCall;
+        let peer;
+        let isMuted = false;
+        let isVideoOff = false;
+        let facingMode = 'user';
+        let callAttempted = false;
+        
+        // Elementos da UI
+        const status = document.getElementById('status');
+        const videoContainer = document.getElementById('videoContainer');
+        const controls = document.getElementById('controls');
+        const connected = document.getElementById('connected');
+        const visitorInfo = document.getElementById('visitorInfo');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const muteBtn = document.getElementById('muteBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        
+        // Obter parâmetros da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const unitId = urlParams.get('unit') || 'Unidade Desconhecida';
+        const residentName = urlParams.get('resident') || 'Morador';
+        
+        // Atualizar informações da unidade
+        document.getElementById('unitDisplay').textContent = unitId;
+        document.getElementById('residentDisplay').textContent = residentName;
+        
+        // Iniciar chamada automaticamente
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (!callAttempted) {
+                    startCall();
+                }
+            }, 1000);
+        });
+        
+        // Iniciar chamada
+        async function startCall() {
+            callAttempted = true;
+            
+            try {
+                status.innerHTML = `
+                    <p>📹 Acessando câmera...</p>
+                    <div class="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                `;
+                
+                // Obter mídia local
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: facingMode }, 
+                    audio: true 
+                });
+                
+                localVideo.srcObject = localStream;
+                
+                status.innerHTML = `
+                    <p>🔔 Chamando o morador...</p>
+                    <div class="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                `;
+                
+                // Mostrar informações do visitante
+                visitorInfo.style.display = 'block';
+                
+                // Inicializar PeerJS
+                peer = new Peer({
+                    debug: 2,
+                    config: {
+                        iceServers: [
+                            { url: 'stun:stun.l.google.com:19302' },
+                            { url: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    }
+                });
+                
+                peer.on('open', (id) => {
+                    console.log('Visitante ID:', id);
+                    
+                    // Chamar o morador diretamente pelo unitId
+                    console.log('Tentando chamar morador com ID:', unitId);
+                    
+                    const call = peer.call(unitId, localStream);
+                    
+                    call.on('stream', (stream) => {
+                        console.log('Conectado! Recebendo stream do morador');
+                        remoteVideo.srcObject = stream;
+                        showCallConnected();
+                    });
+                    
+                    call.on('close', () => {
+                        console.log('Chamada encerrada pelo morador');
+                        endCall();
+                    });
+                    
+                    call.on('error', (err) => {
+                        console.error('Erro na chamada:', err);
+                        status.innerHTML = `
+                            <p>❌ Morador indisponível</p>
+                            <p style="font-size: 0.9em; opacity: 0.8;">Verifique se o morador está online</p>
+                        `;
+                    });
+                    
+                    currentCall = call;
+                    
+                    // Timeout caso o morador não atenda
+                    setTimeout(() => {
+                        if (!remoteVideo.srcObject) {
+                            status.innerHTML = `
+                                <p>⏱️ Tempo esgotado</p>
+                                <p style="font-size: 0.9em; opacity: 0.8;">O morador não atendeu</p>
+                            `;
+                        }
+                    }, 30000);
+                });
+                
+                peer.on('error', (err) => {
+                    console.error('Erro no Peer:', err);
+                    status.innerHTML = `
+                        <p>❌ Erro de conexão</p>
+                        <p style="font-size: 0.9em; opacity: 0.8;">Tente novamente</p>
+                    `;
+                });
+                
+            } catch (err) {
+                console.error('Erro ao iniciar chamada:', err);
+                status.innerHTML = `
+                    <p>❌ Erro ao acessar câmera</p>
+                    <p style="font-size: 0.9em; opacity: 0.8;">Verifique as permissões do navegador</p>
+                `;
+            }
+        }
+        
+        // Mostrar chamada conectada
+        function showCallConnected() {
+            status.style.display = 'none';
+            connected.style.display = 'block';
+            videoContainer.style.display = 'block';
+            controls.style.display = 'flex';
+            visitorInfo.style.display = 'none';
+            
+            // Enviar informações do visitante (simulação)
+            const visitorName = document.getElementById('visitorName').value;
+            const visitorReason = document.getElementById('visitorReason').value;
+            console.log('Dados do visitante:', { name: visitorName, reason: visitorReason });
+            
+            // Auto-esconder mensagem após 3 segundos
+            setTimeout(() => {
+                connected.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Controles
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => {
+                    track.enabled = !isMuted;
+                });
+            }
+            muteBtn.classList.toggle('active', isMuted);
+            muteBtn.textContent = isMuted ? '🔊' : '🔇';
+        });
+        
+        videoBtn.addEventListener('click', () => {
+            isVideoOff = !isVideoOff;
+            if (localStream) {
+                localStream.getVideoTracks().forEach(track => {
+                    track.enabled = !isVideoOff;
+                });
+            }
+            videoBtn.classList.toggle('active', isVideoOff);
+            videoBtn.textContent = isVideoOff ? '📹' : '📹';
+        });
+        
+        switchCameraBtn.addEventListener('click', async () => {
+            facingMode = facingMode === 'user' ? 'environment' : 'user';
+            
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: facingMode }, 
+                    audio: true 
+                });
+                localVideo.srcObject = localStream;
+                
+                // Atualizar track na chamada atual
+                if (currentCall) {
+                    const sender = currentCall.peerConnection.getSenders().find(s => 
+                        s.track && s.track.kind === 'video'
+                    );
+                    if (sender) {
+                        sender.replaceTrack(localStream.getVideoTracks()[0]);
+                    }
+                }
+            } catch (err) {
+                console.error('Erro ao trocar câmera:', err);
+                facingMode = facingMode === 'user' ? 'environment' : 'user';
+            }
+        });
+        
+        // Cancelar chamada
+        function cancelCall() {
+            if (confirm('Deseja cancelar a chamada?')) {
+                endCall();
+            }
+        }
+        
+        // Encerrar chamada
+        function endCall() {
+            if (currentCall) {
+                currentCall.close();
+            }
+            
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            
+            if (peer) {
+                peer.destroy();
+            }
+            
+            // Resetar UI
+            status.innerHTML = '<p>📞 Chamada encerrada</p>';
+            status.style.display = 'flex';
+            videoContainer.style.display = 'none';
+            controls.style.display = 'none';
+            connected.style.display = 'none';
+            visitorInfo.style.display = 'none';
+            
+            // Redirecionar após 3 segundos
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        }
+        
+        // Prevenir fechamento acidental
+        window.addEventListener('beforeunload', (e) => {
+            if (currentCall) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar QR Code - Doorvi</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        .qr-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            display: inline-block;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: #ffd93d;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .unit-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+        
+        .demo-links {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .demo-links a {
+            color: #ffd93d;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .demo-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Gerador de QR Code Doorvi</h1>
+        
+        <div class="form-group">
+            <label for="unitId">Identificação da Unidade:</label>
+            <input type="text" id="unitId" placeholder="Ex: APT-101" value="APT-101">
+        </div>
+        
+        <div class="form-group">
+            <label for="residentName">Nome do Morador:</label>
+            <input type="text" id="residentName" placeholder="Ex: João Silva" value="João Silva">
+        </div>
+        
+        <button onclick="generateQR()">Gerar QR Code da Campainha</button>
+        
+        <div class="qr-container" id="qrcode" style="display: none;">
+            <p style="color: #333; margin-bottom: 10px; font-weight: bold;">QR Code da Campainha</p>
+        </div>
+        
+        <div class="unit-info" id="unitInfo" style="display: none;">
+            <strong>Unidade:</strong> <span id="displayUnit"></span><br>
+            <strong>Morador:</strong> <span id="displayResident"></span>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Instruções de Instalação:</h3>
+            <ol>
+                <li>Imprima este QR code em tamanho grande (mínimo 10x10cm)</li>
+                <li>Cole-o em local visível na porta da unidade</li>
+                <li>Proteja com plástico transparente para durabilidade</li>
+                <li>Mantenha o painel do morador sempre aberto no dispositivo</li>
+                <li>Teste o sistema antes de instalar permanentemente</li>
+            </ol>
+        </div>
+        
+        <div class="demo-links">
+            <h3>🔗 Links do Sistema:</h3>
+            <p>• <a href="visitante.html?unit=APT-101&resident=João" target="_blank">Página do Visitante (Demo)</a></p>
+            <p>• <a href="morador.html" target="_blank">Painel do Morador</a></p>
+        </div>
+    </div>
+
+    <script>
+        function generateQR() {
+            const unitId = document.getElementById('unitId').value;
+            const residentName = document.getElementById('residentName').value;
+            const qrContainer = document.getElementById('qrcode');
+            const unitInfo = document.getElementById('unitInfo');
+            
+            if (!unitId || !residentName) {
+                alert('Preencha todos os campos!');
+                return;
+            }
+            
+            // URL da página do visitante com parâmetros da unidade
+            const baseUrl = window.location.href.replace('index.html', '');
+            const visitUrl = `${baseUrl}visitante.html?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
+            
+            // Limpar QR code anterior
+            qrContainer.innerHTML = '<p style="color: #333; margin-bottom: 10px; font-weight: bold;">QR Code da Campainha</p>';
+            
+            // Gerar novo QR code
+            new QRCode(qrContainer, {
+                text: visitUrl,
+                width: 300,
+                height: 300,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            // Mostrar QR code e informações
+            qrContainer.style.display = 'inline-block';
+            unitInfo.style.display = 'block';
+            document.getElementById('displayUnit').textContent = unitId;
+            document.getElementById('displayResident').textContent = residentName;
+            
+            // Adicionar botão de impressão
+            if (!document.getElementById('printBtn')) {
+                const printBtn = document.createElement('button');
+                printBtn.id = 'printBtn';
+                printBtn.textContent = '🖨️ Imprimir QR Code';
+                printBtn.style.marginTop = '20px';
+                printBtn.onclick = function() {
+                    window.print();
+                };
+                qrContainer.parentNode.insertBefore(printBtn, qrContainer.nextSibling);
+            }
+        }
+        
+        // Gerar QR code inicial
+        window.onload = function() {
+            generateQR();
+        };
+    </script>
+</body>
+</html>
