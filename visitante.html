@@ -594,44 +594,33 @@
                 peer = null;
             }
             
-            // Limpar elementos de vídeo
-            localVideo.srcObject = null;
-            remoteVideo.srcObject = null;
-            
-            // Resetar UI imediatamente
-            status.innerHTML = '<p>📞 Chamada encerrada</p>';
-            status.style.display = 'flex';
+            // Limpar UI
+            status.style.display = 'block';
+            status.innerHTML = `
+                <p>📞 Chamada encerrada</p>
+                <p style="font-size: 0.9em; opacity: 0.8;">Obrigado pela visita</p>
+            `;
+            connected.style.display = 'none';
             videoContainer.style.display = 'none';
             controls.style.display = 'none';
-            connected.style.display = 'none';
-            visitorInfo.style.display = 'none';
             
-            // Limpar variáveis
-            localStream = null;
-            remoteStream = null;
-            callAttempted = false;
-            isMuted = false;
-            isVideoOff = false;
-            
-            log('Chamada encerrada e sistema resetado');
-            
-            // Não redirecionar, permitir nova chamada
-            setTimeout(() => {
-                status.innerHTML = '<p>Clique no botão para nova chamada</p>';
-                cancelBtn.textContent = '📞 Nova Chamada';
-                cancelBtn.onclick = () => {
-                    window.location.reload();
-                };
-            }, 1000);
-        }
-        
-        // Prevenir fechamento acidental
-        window.addEventListener('beforeunload', (e) => {
-            if (currentCall) {
-                e.preventDefault();
-                e.returnValue = '';
+            // Limpar vídeos
+            if (localVideo.srcObject) {
+                localVideo.srcObject = null;
             }
-        });
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject = null;
+            }
+            
+            // Desabilitar botão cancelar
+            cancelBtn.disabled = true;
+            cancelBtn.textContent = 'Chamada Encerrada';
+            
+            // Redirecionar após 3 segundos
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 3000);
+        }
     </script>
 </body>
 </html>

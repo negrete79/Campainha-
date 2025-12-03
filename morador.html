@@ -639,143 +639,154 @@
             });
             
             peer.on('open', (id) => {
-                log(`PeerJS conectado com ID: ${id}`);
-                connectionStatus.textContent = `Sistema Online - ID: ${id}`;
+                log(`✅ Conectado! ID: ${id}`);
+                connectionStatus.textContent = '✅ Online';
                 peerIdDisplay.textContent = id;
-            });
-            
-            peer.on('connection', (conn) => {
-                log('Conexão recebida de: ' + conn.peer);
-            });
-            
-            // Receber chamadas
-            peer.on('call', (call) => {
-                log(`Chamada recebida de: ${call.peer}`);
                 
-                // Mostrar notificação na tela
-                showIncomingCall(call);
-                
-                // Mostrar notificação do sistema
-                showSystemNotification('🔔 Nova visita na porta!', 'Alguém está tocando a campainha');
-                
-                // Iniciar som de telefone insistente
-                startRinging();
-                
-                // NÃO auto-aceitar - esperar o botão atender
-                log('Aguardando botão atender...');
+                // Gerar QR code após conexão
+                generateDoorbellQR();
             });
             
             peer.on('error', (err) => {
-                console.error('Erro no Peer:', err);
-                log('Erro no PeerJS: ' + err.type + ' - ' + err.message);
-                connectionStatus.textContent = 'Erro de conexão';
+                log(`❌ Erro: ${err.type} - ${err.message}`);
+                connectionStatus.textContent = '❌ Erro de conexão';
             });
             
-            peer.on('disconnected', () => {
-                log('PeerJS desconectado');
-                connectionStatus.textContent = 'Desconectado';
-                // Tentar reconectar
-                setTimeout(() => {
-                    log('Tentando reconectar...');
-                    peer.reconnect();
-                }, 3000);
-            });
-            
-            peer.on('close', () => {
-                log('PeerJS fechado');
-                connectionStatus.textContent = 'Conexão fechada';
+            // Receber chamada
+            peer.on('call', (call) => {
+                log(`📞 Chamada recebida de: ${call.peer}`);
+                
+                // Mostrar notificação
+                notification.style.display = 'block';
+                waitingScreen.style.display = 'none';
+                
+                // Tocar som de telefone
+                startRinging();
+                
+                // Mostrar notificação do sistema
+                showSystemNotification('Alguém está na sua porta!', 'Toque para atender');
+                
+                // Salvar referência da chamada
+                currentCall = call;
+                
+                // Configurar botões
+                acceptBtn.onclick = () => {
+                    log('✅ Atendendo chamada');
+                    
+                    // Parar som de telefone
+                    stopRinging();
+                    
+                    // Esconder notificação
+                    notification.style.display = 'none';
+                    
+                    // Mostrar container da chamada
+                    callContainer.style.display = 'block';
+                    
+                    // Atender chamada com stream local (apenas áudio)
+                    call.answer(localStream);
+                    
+                    // Receber stream do visitante (vídeo e áudio)
+                    call.on('stream', (remoteStream) => {
+                        log('📹 Recebendo vídeo do visitante');
+                        remoteVideo.srcObject = remoteStream;
+                        
+                        // Adicionar ao histórico
+                        addToHistory();
+                    });
+                    
+                    // Quando a chamada for encerrada
+                    call.on('close', () => {
+                        log('📞 Chamada encerrada');
+                        endCall();
+                    });
+                };
+                
+                rejectBtn.onclick = () => {
+                    log('❌ Recusando chamada');
+                    
+                    // Parar som de telefone
+                    stopRinging();
+                    
+                    // Fechar chamada
+                    call.close();
+                    
+                    // Esconder notificação
+                    notification.style.display = 'none';
+                    waitingScreen.style.display = 'block';
+                };
             });
         }
         
-        // Mostrar chamada recebida
-        function showIncomingCall(call) {
-            log('Exibindo notificação de chamada');
-            notification.style.display = 'block';
-            
-            // Simular dados do visitante
-            const visitorData = {
-                name: "Visitante",
-                reason: "Visita",
-                time: new Date().toLocaleString()
+        // Adicionar ao histórico
+        function addToHistory() {
+            const now = new Date();
+            const visit = {
+                name: 'Visitante',
+                reason: 'Visita',
+                time: now.toLocaleString('pt-BR'),
+                timestamp: now.getTime()
             };
             
-            // Atualizar informações
-            document.getElementById('visitorName').textContent = visitorData.name;
-            document.getElementById('visitorReason').textContent = visitorData.reason;
-            document.getElementById('visitTime').textContent = visitorData.time;
+            visitHistory.unshift(visit);
             
-            // Atualizar avatar
-            const avatar = document.getElementById('visitorAvatar');
-            avatar.textContent = visitorData.name.charAt(0).toUpperCase();
+            // Manter apenas as últimas 10 visitas
+            if (visitHistory.length > 10) {
+                visitHistory = visitHistory.slice(0, 10);
+            }
             
-            // Adicionar ao histórico
-            addToHistory(visitorData);
+            // Salvar no localStorage
+            localStorage.setItem('visitHistory', JSON.stringify(visitHistory));
             
-            // Configurar botões
-            acceptBtn.onclick = () => {
-                log('Botão Atender clicado');
-                acceptCall(call);
-            };
-            rejectBtn.onclick = () => {
-                log('Botão Recusar clicado');
-                rejectCall(call);
-            };
+            // Atualizar UI
+            updateHistoryUI();
         }
         
-        // Aceitar chamada
-        function acceptCall(call) {
-            log('Aceitando chamada...');
-            notification.style.display = 'none';
-            waitingScreen.style.display = 'none';
-            callContainer.style.display = 'block';
+        // Atualizar UI do histórico
+        function updateHistoryUI() {
+            if (visitHistory.length === 0) {
+                historyList.innerHTML = '<div class="no-visits">Nenhuma visita recente</div>';
+                return;
+            }
             
-            // Parar som de telefone
-            stopRinging();
-            
-            // Responder chamada com stream local (apenas áudio)
-            call.answer(localStream);
-            
-            call.on('stream', (stream) => {
-                log('Stream remoto recebido');
-                remoteVideo.srcObject = stream;
+            let html = '';
+            visitHistory.forEach(visit => {
+                html += `
+                    <div class="history-item">
+                        <div class="history-visitor">
+                            <div class="history-avatar">👤</div>
+                            <div>
+                                <strong>${visit.name}</strong>
+                                <p style="opacity: 0.8; font-size: 0.9em;">${visit.reason}</p>
+                            </div>
+                        </div>
+                        <div>${visit.time}</div>
+                    </div>
+                `;
             });
             
-            call.on('close', () => {
-                log('Chamada encerrada pelo visitante');
-                endCall();
-            });
-            
-            call.on('error', (err) => {
-                log('Erro na chamada: ' + err.message);
-                endCall();
-            });
-            
-            currentCall = call;
-        }
-        
-        // Recusar chamada
-        function rejectCall(call) {
-            log('Recusando chamada...');
-            call.close();
-            notification.style.display = 'none';
-            stopRinging();
+            historyList.innerHTML = html;
         }
         
         // Encerrar chamada
         function endCall() {
-            log('Encerrando chamada...');
-            
-            if (currentCall) {
-                currentCall.close();
-                currentCall = null;
+            // Parar todos os streams
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+                remoteVideo.srcObject = null;
             }
             
+            // Esconder container da chamada
             callContainer.style.display = 'none';
+            
+            // Mostrar tela de espera
             waitingScreen.style.display = 'block';
-            stopRinging();
+            
+            // Resetar botões
+            acceptBtn.onclick = null;
+            rejectBtn.onclick = null;
         }
         
-        // Controles de áudio
+        // Controles
         muteBtn.addEventListener('click', () => {
             isMuted = !isMuted;
             if (localStream) {
@@ -788,33 +799,30 @@
             log('Áudio ' + (isMuted ? 'desligado' : 'ligado'));
         });
         
-        // Gravação (simulada)
         recordBtn.addEventListener('click', () => {
             isRecording = !isRecording;
             recordBtn.classList.toggle('active', isRecording);
-            recordBtn.innerHTML = isRecording ? '<span>⏹️</span> Parar' : '<span>⏺️</span> Gravar';
+            recordBtn.innerHTML = isRecording ? '<span>⏹️</span> Gravar' : '<span>⏺️</span> Gravar';
             log('Gravação ' + (isRecording ? 'iniciada' : 'parada'));
         });
         
-        // Screenshot
         screenshotBtn.addEventListener('click', () => {
-            log('Tirando screenshot...');
             const canvas = document.createElement('canvas');
             canvas.width = remoteVideo.videoWidth;
             canvas.height = remoteVideo.videoHeight;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(remoteVideo, 0, 0);
+            ctx.drawImage(remoteVideo, 0, 0, canvas.width, canvas.height);
             
-            // Download da imagem
+            // Fazer download
             const link = document.createElement('a');
-            link.download = `visita_${new Date().getTime()}.png`;
-            link.href = canvas.toDataURL();
+            link.download = `doorvi-${new Date().getTime()}.png`;
+            link.href = canvas.toDataURL('image/png');
             link.click();
+            
+            log('📸 Foto tirada');
         });
         
-        // Tela cheia
         fullscreenBtn.addEventListener('click', () => {
-            log('Modo tela cheia...');
             if (remoteVideo.requestFullscreen) {
                 remoteVideo.requestFullscreen();
             } else if (remoteVideo.webkitRequestFullscreen) {
@@ -822,89 +830,38 @@
             } else if (remoteVideo.msRequestFullscreen) {
                 remoteVideo.msRequestFullscreen();
             }
+            log('🔍 Tela cheia ativada');
         });
         
-        // Abrir porta (simulado)
         unlockBtn.addEventListener('click', () => {
-            log('Solicitação para abrir porta...');
             if (confirm('Tem certeza que deseja abrir a porta?')) {
+                log('🔓 Porta aberta');
+                // Aqui você pode adicionar a integração com o sistema de abertura de porta
                 alert('Porta aberta com sucesso!');
-                
-                // Registrar no histórico
-                addToHistory({
-                    name: document.getElementById('visitorName').textContent,
-                    reason: document.getElementById('visitorReason').textContent + " (Porta Aberta)",
-                    time: new Date().toLocaleString()
-                });
             }
         });
         
-        // Adicionar ao histórico
-        function addToHistory(visitor) {
-            const visit = {
-                ...visitor,
-                id: Date.now()
-            };
-            
-            visitHistory.unshift(visit);
-            if (visitHistory.length > 10) {
-                visitHistory = visitHistory.slice(0, 10);
-            }
-            
-            localStorage.setItem('visitHistory', JSON.stringify(visitHistory));
-            updateHistoryDisplay();
-        }
-        
-        // Atualizar exibição do histórico
-        function updateHistoryDisplay() {
-            if (visitHistory.length === 0) {
-                historyList.innerHTML = '<div class="no-visits">Nenhuma visita recente</div>';
-                return;
-            }
-            
-            historyList.innerHTML = visitHistory.map(visit => `
-                <div class="history-item">
-                    <div class="history-visitor">
-                        <div class="history-avatar">${visit.name.charAt(0).toUpperCase()}</div>
-                        <div>
-                            <strong>${visit.name}</strong>
-                            <div style="font-size: 0.9em; opacity: 0.8;">${visit.reason}</div>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div>${visit.time}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Inicialização
+        // Inicializar sistema
         window.addEventListener('load', async () => {
-            log('Iniciando sistema...');
+            log('🚀 Iniciando sistema...');
             
             // Verificar se PeerJS foi carregado
             if (!checkPeerJS()) {
-                log('PeerJS não está disponível');
+                log('❌ PeerJS não está disponível');
                 return;
             }
             
             // Solicitar permissão de notificação
             await requestNotificationPermission();
             
-            generateDoorbellQR();
+            // Inicializar microfone
             await initLocalCamera();
-            initPeer();
-            updateHistoryDisplay();
             
-            // Manter online - atualizar status periodicamente
-            setInterval(() => {
-                if (peer && peer.open) {
-                    log('Verificando status da conexão...');
-                    connectionStatus.textContent = `Sistema Online - ID: ${peer.id}`;
-                } else {
-                    connectionStatus.textContent = 'Desconectado';
-                }
-            }, 30000);
+            // Inicializar Peer
+            initPeer();
+            
+            // Atualizar histórico
+            updateHistoryUI();
         });
     </script>
 </body>
