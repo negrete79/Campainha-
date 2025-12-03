@@ -313,6 +313,17 @@
             opacity: 0.7;
         }
         
+        .debug-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 0.9em;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
         @media (max-width: 768px) {
             .video-container {
                 grid-template-columns: 1fr;
@@ -345,7 +356,7 @@
         <div class="status-bar">
             <div class="online-indicator">
                 <div class="online-dot"></div>
-                <span>Sistema Online</span>
+                <span id="connectionStatus">Conectando...</span>
             </div>
             <div>
                 <strong>Unidade:</strong> <span id="unitId">APT-101</span>
@@ -366,6 +377,7 @@
         <div class="notification" id="notification">
             <h3>🔔 Alguém está na sua porta!</h3>
             <p>Visitante aguardando atendimento</p>
+            <div class="debug-info" id="debugInfo"></div>
         </div>
         
         <div class="waiting-screen" id="waitingScreen">
@@ -373,6 +385,9 @@
             <h2>Aguardando Visitas</h2>
             <p>O sistema está online e aguardando chamadas</p>
             <p style="margin-top: 15px; opacity: 0.7;">Quando alguém escanear o QR code da sua porta, você será notificado aqui</p>
+            <div class="debug-info">
+                ID: <span id="peerIdDisplay">--</span>
+            </div>
         </div>
         
         <div class="call-container" id="callContainer">
@@ -429,6 +444,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
         // Configuração do sistema
         let localStream;
@@ -456,11 +472,23 @@
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const historyList = document.getElementById('historyList');
         const unitIdSpan = document.getElementById('unitId');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const peerIdDisplay = document.getElementById('peerIdDisplay');
+        const debugInfo = document.getElementById('debugInfo');
         
         // Configurar unidade
         const unitId = "APT-101";
         const residentName = "João Silva";
         unitIdSpan.textContent = unitId;
+        
+        // Função de log para depuração
+        function log(message) {
+            console.log('[Doorvi Morador]', message);
+            if (debugInfo) {
+                debugInfo.textContent += message + '\n';
+                debugInfo.scrollTop = debugInfo.scrollHeight;
+            }
+        }
         
         // Gerar QR code da campainha
         function generateDoorbellQR() {
@@ -480,42 +508,55 @@
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
+            
+            log('QR Code gerado: ' + visitUrl);
         }
         
         // Inicializar câmera local
         async function initLocalCamera() {
             try {
+                log('Solicitando acesso à câmera e microfone...');
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: true, 
                     audio: true 
                 });
                 localVideo.srcObject = localStream;
+                log('Câmera e microfone acessados com sucesso');
             } catch (err) {
                 console.error('Erro ao acessar câmera:', err);
                 alert('Não foi possível acessar a câmera. Verifique as permissões.');
+                log('Erro ao acessar câmera: ' + err.message);
             }
         }
         
         // Inicializar PeerJS com ID fixo
         function initPeer() {
+            log('Inicializando PeerJS...');
+            
             peer = new Peer(unitId, {
                 debug: 2,
                 config: {
                     iceServers: [
                         { url: 'stun:stun.l.google.com:19302' },
-                        { url: 'stun:stun1.l.google.com:19302' }
+                        { url: 'stun:stun1.l.google.com:19302' },
+                        { url: 'stun:stun2.l.google.com:19302' }
                     ]
                 }
             });
             
             peer.on('open', (id) => {
-                console.log('Morador online com ID:', id);
-                document.querySelector('.online-indicator span').textContent = `Sistema Online - ID: ${id}`;
+                log(`PeerJS conectado com ID: ${id}`);
+                connectionStatus.textContent = `Sistema Online - ID: ${id}`;
+                peerIdDisplay.textContent = id;
+            });
+            
+            peer.on('connection', (conn) => {
+                log('Conexão recebida de: ' + conn.peer);
             });
             
             // Receber chamadas
             peer.on('call', (call) => {
-                console.log('Recebendo chamada de:', call.peer);
+                log(`Chamada recebida de: ${call.peer}`);
                 
                 // Mostrar notificação
                 showIncomingCall(call);
@@ -523,6 +564,7 @@
                 // Auto-aceitar após 10 segundos
                 setTimeout(() => {
                     if (callContainer.style.display !== 'block') {
+                        log('Auto-aceitando chamada após timeout');
                         acceptCall(call);
                     }
                 }, 10000);
@@ -530,11 +572,29 @@
             
             peer.on('error', (err) => {
                 console.error('Erro no Peer:', err);
+                log('Erro no PeerJS: ' + err.type + ' - ' + err.message);
+                connectionStatus.textContent = 'Erro de conexão';
+            });
+            
+            peer.on('disconnected', () => {
+                log('PeerJS desconectado');
+                connectionStatus.textContent = 'Desconectado';
+                // Tentar reconectar
+                setTimeout(() => {
+                    log('Tentando reconectar...');
+                    peer.reconnect();
+                }, 3000);
+            });
+            
+            peer.on('close', () => {
+                log('PeerJS fechado');
+                connectionStatus.textContent = 'Conexão fechada';
             });
         }
         
         // Mostrar chamada recebida
         function showIncomingCall(call) {
+            log('Exibindo notificação de chamada');
             notification.style.display = 'block';
             playNotificationSound();
             
@@ -558,12 +618,19 @@
             addToHistory(visitorData);
             
             // Configurar botões
-            acceptBtn.onclick = () => acceptCall(call);
-            rejectBtn.onclick = () => rejectCall(call);
+            acceptBtn.onclick = () => {
+                log('Botão Atender clicado');
+                acceptCall(call);
+            };
+            rejectBtn.onclick = () => {
+                log('Botão Recusar clicado');
+                rejectCall(call);
+            };
         }
         
         // Aceitar chamada
         function acceptCall(call) {
+            log('Aceitando chamada...');
             notification.style.display = 'none';
             waitingScreen.style.display = 'none';
             callContainer.style.display = 'block';
@@ -572,12 +639,17 @@
             call.answer(localStream);
             
             call.on('stream', (stream) => {
-                console.log('Recebendo stream remoto');
+                log('Stream remoto recebido');
                 remoteVideo.srcObject = stream;
             });
             
             call.on('close', () => {
-                console.log('Chamada encerrada');
+                log('Chamada encerrada pelo visitante');
+                endCall();
+            });
+            
+            call.on('error', (err) => {
+                log('Erro na chamada: ' + err.message);
                 endCall();
             });
             
@@ -586,19 +658,22 @@
         
         // Recusar chamada
         function rejectCall(call) {
+            log('Recusando chamada...');
             call.close();
             notification.style.display = 'none';
         }
         
         // Encerrar chamada
         function endCall() {
+            log('Encerrando chamada...');
+            
             if (currentCall) {
                 currentCall.close();
+                currentCall = null;
             }
             
             callContainer.style.display = 'none';
             waitingScreen.style.display = 'block';
-            currentCall = null;
         }
         
         // Simular som de notificação
@@ -634,6 +709,7 @@
             }
             muteBtn.classList.toggle('active', isMuted);
             muteBtn.innerHTML = isMuted ? '<span>🔊</span> Áudio' : '<span>🔇</span> Áudio';
+            log('Áudio ' + (isMuted ? 'desligado' : 'ligado'));
         });
         
         // Controles de vídeo
@@ -646,6 +722,7 @@
             }
             videoBtn.classList.toggle('active', isVideoOff);
             videoBtn.innerHTML = isVideoOff ? '<span>📹</span> Vídeo' : '<span>📹</span> Vídeo';
+            log('Vídeo ' + (isVideoOff ? 'desligado' : 'ligado'));
         });
         
         // Gravação (simulada)
@@ -653,16 +730,12 @@
             isRecording = !isRecording;
             recordBtn.classList.toggle('active', isRecording);
             recordBtn.innerHTML = isRecording ? '<span>⏹️</span> Parar' : '<span>⏺️</span> Gravar';
-            
-            if (isRecording) {
-                alert('Gravação iniciada');
-            } else {
-                alert('Gravação salva');
-            }
+            log('Gravação ' + (isRecording ? 'iniciada' : 'parada'));
         });
         
         // Screenshot
         screenshotBtn.addEventListener('click', () => {
+            log('Tirando screenshot...');
             const canvas = document.createElement('canvas');
             canvas.width = remoteVideo.videoWidth;
             canvas.height = remoteVideo.videoHeight;
@@ -678,6 +751,7 @@
         
         // Tela cheia
         fullscreenBtn.addEventListener('click', () => {
+            log('Modo tela cheia...');
             if (remoteVideo.requestFullscreen) {
                 remoteVideo.requestFullscreen();
             } else if (remoteVideo.webkitRequestFullscreen) {
@@ -689,9 +763,9 @@
         
         // Abrir porta (simulado)
         unlockBtn.addEventListener('click', () => {
+            log('Solicitação para abrir porta...');
             if (confirm('Tem certeza que deseja abrir a porta?')) {
                 alert('Porta aberta com sucesso!');
-                console.log('Solicitação de abertura de porta enviada');
                 
                 // Registrar no histórico
                 addToHistory({
@@ -743,18 +817,22 @@
         
         // Inicialização
         window.addEventListener('load', async () => {
+            log('Iniciando sistema...');
             generateDoorbellQR();
             await initLocalCamera();
             initPeer();
             updateHistoryDisplay();
+            
+            // Manter online - atualizar status periodicamente
+            setInterval(() => {
+                if (peer && peer.open) {
+                    log('Verificando status da conexão...');
+                    connectionStatus.textContent = `Sistema Online - ID: ${peer.id}`;
+                } else {
+                    connectionStatus.textContent = 'Desconectado';
+                }
+            }, 30000);
         });
-        
-        // Manter online - atualizar status periodicamente
-        setInterval(() => {
-            if (peer && peer.open) {
-                console.log('Morador ainda online:', peer.id);
-            }
-        }, 30000);
     </script>
 </body>
 </html>

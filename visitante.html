@@ -206,6 +206,18 @@
             font-size: 1em;
         }
         
+        .debug-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 0.8em;
+            max-height: 100px;
+            overflow-y: auto;
+            display: none;
+        }
+        
         @media (max-width: 480px) {
             .container {
                 padding: 20px;
@@ -241,7 +253,7 @@
         
         <div class="connected" id="connected">
             <h3>✅ Chamada Conectada!</h3>
-            <p>Você está em chamada de vídeo com o morador</p>
+            <p>Você está em chamada de vídeo com oador</p>
         </div>
         
         <div class="visitor-info" id="visitorInfo">
@@ -267,7 +279,9 @@
             <button class="control-btn" id="switchCameraBtn">🔄</button>
         </div>
         
-        <button class="cancel-btn" id="cancelBtn" onclick="cancelCall()">❌ Cancelar Chamada</button>
+        <button class="cancel-btn" id="cancelBtn">❌ Cancelar Chamada</button>
+        
+        <div class="debug-info" id="debugInfo"></div>
     </div>
 
     <script>
@@ -293,6 +307,7 @@
         const videoBtn = document.getElementById('videoBtn');
         const switchCameraBtn = document.getElementById('switchCameraBtn');
         const cancelBtn = document.getElementById('cancelBtn');
+        const debugInfo = document.getElementById('debugInfo');
         
         // Obter parâmetros da URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -303,10 +318,21 @@
         document.getElementById('unitDisplay').textContent = unitId;
         document.getElementById('residentDisplay').textContent = residentName;
         
+        // Função de log para depuração
+        function log(message) {
+            console.log('[Doorvi Visitante]', message);
+            if (debugInfo) {
+                debugInfo.textContent += message + '\n';
+                debugInfo.scrollTop = debugInfo.scrollHeight;
+            }
+        }
+        
         // Iniciar chamada automaticamente
         window.addEventListener('load', () => {
+            log('Página carregada');
             setTimeout(() => {
                 if (!callAttempted) {
+                    log('Iniciando chamada automaticamente');
                     startCall();
                 }
             }, 1000);
@@ -327,12 +353,14 @@
                 `;
                 
                 // Obter mídia local
+                log('Solicitando acesso à câmera e microfone...');
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: facingMode }, 
                     audio: true 
                 });
                 
                 localVideo.srcObject = localStream;
+                log('Câmera e microfone acessados com sucesso');
                 
                 status.innerHTML = `
                     <p>🔔 Chamando o morador...</p>
@@ -347,37 +375,49 @@
                 visitorInfo.style.display = 'block';
                 
                 // Inicializar PeerJS
+                log('Inicializando PeerJS...');
                 peer = new Peer({
                     debug: 2,
                     config: {
                         iceServers: [
                             { url: 'stun:stun.l.google.com:19302' },
-                            { url: 'stun:stun1.l.google.com:19302' }
+                            { url: 'stun:stun1.l.google.com:19302' },
+                            { url: 'stun:stun2.l.google.com:19302' }
                         ]
                     }
                 });
                 
                 peer.on('open', (id) => {
-                    console.log('Visitante ID:', id);
+                    log(`PeerJS conectado com ID: ${id}`);
                     
                     // Chamar o morador diretamente pelo unitId
-                    console.log('Tentando chamar morador com ID:', unitId);
+                    log(`Tentando chamar morador com ID: ${unitId}`);
                     
+                    // Verificar se o morador está disponível
                     const call = peer.call(unitId, localStream);
                     
+                    if (!call) {
+                        log('Falha ao criar chamada');
+                        status.innerHTML = `
+                            <p>❌ Não foi possível criar a chamada</p>
+                            <p style="font-size: 0.9em; opacity: 0.8;">Verifique se o morador está online</p>
+                        `;
+                        return;
+                    }
+                    
                     call.on('stream', (stream) => {
-                        console.log('Conectado! Recebendo stream do morador');
+                        log('Stream do morador recebido');
                         remoteVideo.srcObject = stream;
                         showCallConnected();
                     });
                     
                     call.on('close', () => {
-                        console.log('Chamada encerrada pelo morador');
+                        log('Chamada encerrada pelo morador');
                         endCall();
                     });
                     
                     call.on('error', (err) => {
-                        console.error('Erro na chamada:', err);
+                        log('Erro na chamada: ' + err.message);
                         status.innerHTML = `
                             <p>❌ Morador indisponível</p>
                             <p style="font-size: 0.9em; opacity: 0.8;">Verifique se o morador está online</p>
@@ -389,6 +429,7 @@
                     // Timeout caso o morador não atenda
                     setTimeout(() => {
                         if (!remoteVideo.srcObject) {
+                            log('Timeout - morador não atendeu');
                             status.innerHTML = `
                                 <p>⏱️ Tempo esgotado</p>
                                 <p style="font-size: 0.9em; opacity: 0.8;">O morador não atendeu</p>
@@ -398,7 +439,7 @@
                 });
                 
                 peer.on('error', (err) => {
-                    console.error('Erro no Peer:', err);
+                    log('Erro no PeerJS: ' + err.message);
                     status.innerHTML = `
                         <p>❌ Erro de conexão</p>
                         <p style="font-size: 0.9em; opacity: 0.8;">Tente novamente</p>
@@ -406,7 +447,7 @@
                 });
                 
             } catch (err) {
-                console.error('Erro ao iniciar chamada:', err);
+                log('Erro ao iniciar chamada: ' + err.message);
                 status.innerHTML = `
                     <p>❌ Erro ao acessar câmera</p>
                     <p style="font-size: 0.9em; opacity: 0.8;">Verifique as permissões do navegador</p>
@@ -416,6 +457,7 @@
         
         // Mostrar chamada conectada
         function showCallConnected() {
+            log('Chamada conectada com sucesso');
             status.style.display = 'none';
             connected.style.display = 'block';
             videoContainer.style.display = 'block';
@@ -425,7 +467,7 @@
             // Enviar informações do visitante (simulação)
             const visitorName = document.getElementById('visitorName').value;
             const visitorReason = document.getElementById('visitorReason').value;
-            console.log('Dados do visitante:', { name: visitorName, reason: visitorReason });
+            log(`Dados do visitante: Nome=${visitorName}, Motivo=${visitorReason}`);
             
             // Auto-esconder mensagem após 3 segundos
             setTimeout(() => {
@@ -443,6 +485,7 @@
             }
             muteBtn.classList.toggle('active', isMuted);
             muteBtn.textContent = isMuted ? '🔊' : '🔇';
+            log('Áudio ' + (isMuted ? 'desligado' : 'ligado'));
         });
         
         videoBtn.addEventListener('click', () => {
@@ -454,9 +497,11 @@
             }
             videoBtn.classList.toggle('active', isVideoOff);
             videoBtn.textContent = isVideoOff ? '📹' : '📹';
+            log('Vídeo ' + (isVideoOff ? 'desligado' : 'ligado'));
         });
         
         switchCameraBtn.addEventListener('click', async () => {
+            log('Trocando câmera...');
             facingMode = facingMode === 'user' ? 'environment' : 'user';
             
             if (localStream) {
@@ -479,23 +524,28 @@
                         sender.replaceTrack(localStream.getVideoTracks()[0]);
                     }
                 }
+                log('Câmera trocada com sucesso');
             } catch (err) {
-                console.error('Erro ao trocar câmera:', err);
+                log('Erro ao trocar câmera: ' + err.message);
                 facingMode = facingMode === 'user' ? 'environment' : 'user';
             }
         });
         
         // Cancelar chamada
-        function cancelCall() {
+        cancelBtn.addEventListener('click', () => {
+            log('Botão Cancelar clicado');
             if (confirm('Deseja cancelar a chamada?')) {
                 endCall();
             }
-        }
+        });
         
         // Encerrar chamada
         function endCall() {
+            log('Encerrando chamada...');
+            
             if (currentCall) {
                 currentCall.close();
+                currentCall = null;
             }
             
             if (localStream) {
