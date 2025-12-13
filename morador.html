@@ -436,6 +436,10 @@
             margin-bottom: 30px;
             border: 1px solid var(--glass-border);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .qr-code {
@@ -445,6 +449,13 @@
             display: inline-block;
             margin: 20px 0;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .qr-section .btn {
+            margin: 20px auto 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         .debug {
@@ -764,9 +775,23 @@
             log('QR Code gerado: ' + visitUrl);
         }
         
-        // Som de telefone (ringtone realista)
+        // Função para solicitar permissão de notificação
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        log('Permissão de notificação concedida');
+                    } else {
+                        log('Permissão de notificação negada');
+                    }
+                });
+            }
+        }
+        
+        // Som de telefone (ringtone realista) - CORRIGIDO
         function playPhoneRingtone() {
             try {
+                // Criar áudio usando Web Audio API para melhor compatibilidade
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
                 // Padrão de toque de telefone tradicional
@@ -805,15 +830,6 @@
                 log('Toque de telefone iniciado');
             } catch (e) {
                 log('Erro ao tocar toque: ' + e.message);
-                
-                // Fallback com áudio pré-gravado de toque de telefone
-                try {
-                    const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
-                    audio.volume = 1.0;
-                    audio.play().catch(() => {});
-                } catch (e2) {
-                    log('Erro no fallback de áudio: ' + e2.message);
-                }
             }
         }
         
@@ -826,6 +842,35 @@
             if ('vibrate' in navigator) {
                 navigator.vibrate([500, 500, 500, 500, 500]);
             }
+            
+            // Enviar notificação push se o Service Worker estiver disponível
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification('Doorvi - Chamada Recebida', {
+                        body: 'Alguém está na sua porta!',
+                        icon: 'icons/icon-192x192.png',
+                        badge: 'icons/badge-72x72.png',
+                        vibrate: [200, 100, 200, 100, 200],
+                        tag: 'doorvi-call',
+                        renotify: true,
+                        requireInteraction: true,
+                        actions: [
+                            {
+                                action: 'accept',
+                                title: 'Atender',
+                                icon: 'images/checkmark.png'
+                            },
+                            {
+                                action: 'reject',
+                                title: 'Recusar',
+                                icon: 'images/xmark.png'
+                            }
+                        ]
+                    });
+                }).catch(err => {
+                    log('Erro ao mostrar notificação: ' + err.message);
+                });
+            }
         }
         
         // Parar toque
@@ -834,6 +879,15 @@
                 clearInterval(ringtoneInterval);
                 ringtoneInterval = null;
                 log('Toque de telefone parado');
+            }
+            
+            // Fechar notificações
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.getNotifications({ tag: 'doorvi-call' }).then(notifications => {
+                        notifications.forEach(notification => notification.close());
+                    });
+                });
             }
         }
         
@@ -1073,11 +1127,26 @@
             // Criar partículas animadas
             createParticles();
             
+            // Solicitar permissão de notificação
+            requestNotificationPermission();
+            
             // Registrar Service Worker para PWA
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
                         console.log('Service Worker registrado com sucesso:', registration);
+                        
+                        // Verificar se há uma atualização pendente
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Novo conteúdo disponível
+                                    console.log('Novo conteúdo disponível, recarregando...');
+                                    window.location.reload();
+                                }
+                            });
+                        });
                     })
                     .catch(error => {
                         console.log('Falha ao registrar Service Worker:', error);
