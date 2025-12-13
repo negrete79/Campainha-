@@ -1,362 +1,475 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doorvi - Sistema de Campainha Inteligente</title>
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#1e3c72">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Doorvi">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        
-        .logo {
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
-        
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 1.2em;
-            opacity: 0.8;
-            margin-bottom: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-        }
-        
-        .generate-btn {
-            background: #2ecc71;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
-            font-weight: 600;
-        }
-        
-        .generate-btn:hover {
-            background: #27ae60;
-            transform: translateY(-2px);
-        }
-        
-        .qr-container {
-            margin-top: 30px;
-            padding: 20px;
-            background: white;
-            border-radius: 15px;
-            display: none;
-        }
-        
-        .qr-info {
-            margin-top: 15px;
-            color: #333;
-        }
-        
-        .qr-info h3 {
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        
-        .qr-info p {
-            margin-bottom: 8px;
-        }
-        
-        .actions {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .action-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1em;
-        }
-        
-        .action-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .features {
-            margin-top: 40px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        
-        .feature {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-        }
-        
-        .feature-icon {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-        
-        .feature h3 {
-            margin-bottom: 10px;
-        }
-        
-        .feature p {
-            opacity: 0.8;
-            font-size: 0.9em;
-        }
-        
-        .install-banner {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #2ecc71;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            cursor: pointer;
-        }
-        
-        .install-banner.show {
-            display: flex;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 2em;
-            }
-            
-            .features {
-                grid-template-columns: 1fr;
-            }
-            
-            .install-banner {
-                left: 20px;
-                right: 20px;
-                justify-content: center;
-            }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gerador IPTV Premium - Listas M3U Grátis | Canais 4K | IPTV Hamster
+</title>
+<meta name="description" content="Gerador de listas IPTV Premium grátis com canais Full HD, 4K e FHD. Obtenha sua lista M3U atualizada com filmes, séries e esportes. Melhor IPTV 2025 com suporte 24h.">
+<meta name="keywords" content="iptv grátis, lista iptv m3u, canais premium, iptv 2025, iptv hd, lista iptv atualizada, iptv sem bloqueio, iptv hamster, melhor iptv, iptv esportes">
+<style>
+    body {
+      background-color: #0f0f0f;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 10px;
+      display: block;
+    }
+    .brand-name {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin: 5px 0;
+    }
+    .subtitle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      color: #000;
+      border: 1px solid #fff;
+      border-radius: 20px;
+      padding: 5px 15px;
+      font-size: 0.9em;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .subtitle i {
+      color: #000;
+    }
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+      color: #7b2ff7;
+    }
+    .seo-text {
+      color: #bbb;
+      font-size: 13px;
+      margin: 20px 0;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .seo-highlight {
+      color: #7b2ff7;
+      font-weight: bold;
+    }
+    .field-label {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      color: #bbb;
+      margin-bottom: 5px;
+      gap: 6px;
+    }
+    .field {
+      background: #141414;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      border: 1px solid #333;
+      transition: all 0.3s ease;
+    }
+    .field:focus-within {
+      border: 1px solid #7b2ff7;
+    }
+    .field input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    .field input:disabled {
+      color: #666;
+    }
+    .copy-btn {
+      background: #7b2ff7;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+    }
+    .copy-btn:hover {
+      background: #9b59f7;
+    }
+    .copy-btn:disabled {
+      background: #333;
+      cursor: not-allowed;
+    }
+    .copy-btn i {
+      color: #fff;
+      font-size: 14px;
+    }
+    .generate-btn {
+      width: 100%;
+      background: linear-gradient(90deg, #7b2ff7, #f107a3);
+      border: none;
+      color: #fff;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .generate-btn:hover {
+      opacity: 0.9;
+    }
+    .button-group {
+      display: none;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .telegram-btn {
+      flex: 1;
+      background: linear-gradient(90deg, #0088cc, #00aced);
+      border: none;
+      color: #fff;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .telegram-btn:hover {
+      opacity: 0.9;
+    }
+    .download-btn {
+      flex: 1;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      border: none;
+      color: #fff;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .download-btn:disabled {
+      background: #333;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .download-btn:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+    .share-btn {
+      flex: 1;
+      background: linear-gradient(90deg, #25D366, #128C7E);
+      border: none;
+      color: #fff;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .share-btn:hover {
+      opacity: 0.9;
+    }
+    .blinking {
+      animation: blink 1.8s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 4px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    .selectable {
+      user-select: all;
+      -webkit-user-select: all;
+      -moz-user-select: all;
+      -ms-user-select: all;
+    }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
-    <div class="container">
-        <div class="logo">🏠</div>
-        <h1>Doorvi</h1>
-        <p class="subtitle">Sistema de Campainha Inteligente</p>
-        
-        <div class="form-group">
-            <label for="unitId">Identificação da Unidade</label>
-            <input type="text" id="unitId" placeholder="Ex: APT-101" value="APT-101">
-        </div>
-        
-        <div class="form-group">
-            <label for="residentName">Nome do Morador</label>
-            <input type="text" id="residentName" placeholder="Ex: João Silva" value="João Silva">
-        </div>
-        
-        <button class="generate-btn" onclick="generateQR()">Gerar QR Code</button>
-        
-        <div class="qr-container" id="qrContainer">
-            <div id="qrcode"></div>
-            <div class="qr-info">
-                <h3>QR Code Gerado!</h3>
-                <p><strong>Unidade:</strong> <span id="qrUnit">APT-101</span></p>
-                <p><strong>Morador:</strong> <span id="qrResident">João Silva</span></p>
-                <p>Imprima este QR code e cole na sua porta</p>
-            </div>
-            <div class="actions">
-                <button class="action-btn" onclick="window.print()">🖨️ Imprimir</button>
-                <button class="action-btn" onclick="downloadQR()">💾 Baixar</button>
-                <button class="action-btn" onclick="window.open('morador.html', '_blank')">🏠 Painel do Morador</button>
-            </div>
-        </div>
-        
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">📱</div>
-                <h3>Acesso Mobile</h3>
-                <p>Visitantes acessam via QR code</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📹</div>
-                <h3>Vídeo em Tempo Real</h3>
-                <p>Veja quem está na porta</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔒</div>
-                <h3>Seguro</h3>
-                <p>Conexão ponto a ponto</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🌐</div>
-                <h3>Qualquer Rede</h3>
-                <p>Funciona em qualquer internet</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Banner de instalação PWA -->
-    <div id="installBanner" class="install-banner">
-        <span>📱 Instalar Doorvi</span>
-        <span>❌</span>
-    </div>
-
-    <script>
-        // Funções existentes
-        function generateQR() {
-            const unitId = document.getElementById('unitId').value || 'APT-101';
-            const residentName = document.getElementById('residentName').value || 'Morador';
-            
-            // Atualizar informações no QR
-            document.getElementById('qrUnit').textContent = unitId;
-            document.getElementById('qrResident').textContent = residentName;
-            
-            // Limpar QR code anterior
-            document.getElementById('qrcode').innerHTML = '';
-            
-            // Gerar URL do visitante
-            const baseUrl = window.location.href.replace('index.html', '');
-            const visitUrl = `${baseUrl}visitante.html?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
-            
-            // Gerar QR code
-            new QRCode(document.getElementById("qrcode"), {
-                text: visitUrl,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            
-            // Mostrar container
-            document.getElementById('qrContainer').style.display = 'block';
+<div class="container">
+    <img src="logo.png" alt="Logo IPTV Hamster - Melhor IPTV Premium 2025" class="logo" />
+<div class="brand-name">IPTV Hamster
+</div>
+<div class="subtitle">
+      <i class="fas fa-list">
+</i> IPTV Premium
+</div>
+    <h1>Gerador IPTV Premium 2025</h1>
+<div class="seo-text">
+      <span class="seo-highlight">IPTV Hamster</span> oferece as melhores listas <span class="seo-highlight">M3U gratuitas</span> com canais <span class="seo-highlight">Full HD, 4K e FHD</span>. Nosso gerador fornece acesso a <span class="seo-highlight">canais premium</span>, filmes, séries e todos os <span class="seo-highlight">canais esportivos</span> sem travamentos. Atualização diária das listas <span class="seo-highlight">IPTV 2025</span> com suporte 24 horas.
+</div>
+    <!-- Removido o campo "Lista m3u" -->
+<div>
+<div class="field-label">
+<i class="fas fa-user">
+</i> Usuário
+</div>
+<div class="field">
+<input type="text" id="usuario" readonly placeholder="Clique em 'Gerar Lista IPTV'" class="selectable" disabled />
+<button class="copy-btn" onclick="copyField('usuario')" disabled>
+          <i class="fas fa-copy">
+</i>
+</button>
+</div>
+</div>
+<div>
+<div class="field-label">
+<i class="fas fa-lock">
+</i> Senha
+</div>
+<div class="field">
+<input type="text" id="senha" readonly placeholder="Clique em 'Gerar Lista IPTV'" class="selectable" disabled />
+<button class="copy-btn" onclick="copyField('senha')" disabled>
+          <i class="fas fa-copy">
+</i>
+</button>
+</div>
+</div>
+<div>
+<div class="field-label">
+<i class="fas fa-globe">
+</i> URL Base
+</div>
+<div class="field">
+<input type="text" id="urlBase" readonly placeholder="Clique em 'Gerar Lista IPTV'" class="selectable" disabled />
+<button class="copy-btn" onclick="copyField('urlBase')" disabled>
+          <i class="fas fa-copy">
+</i>
+</button>
+</div>
+</div>
+    <!-- Botão rápido -->
+<button class="generate-btn" onclick="generateFast()">Gerar Lista IPTV Rápido
+</button>
+    <!-- Botão normal com contagem -->
+<button class="generate-btn" id="generateBtn" onclick="startCountdown()">Gerar Lista IPTV
+</button>
+<!-- Botão M3U -->
+    <a href="m3u.html" class="generate-btn" style="background: linear-gradient(90deg, #00c6ff, #0072ff); text-decoration: none; display: block; text-align: center; margin-top: 10px;">
+      <i class="fas fa-file-code">
+</i> GERAR M3U
+<div class="button-group" id="buttonGroup">
+      <a href="https://t.me/" class="telegram-btn" target="_blank">
+        <i class="fab fa-telegram">
+</i> Telegram
+      </a>
+<button class="download-btn" id="downloadBtn" onclick="downloadList()" disabled>
+        <i class="fas fa-download">
+</i> Baixar
+</button>
+<button class="share-btn" id="shareBtn">
+        <i class="fas fa-share">
+</i> Partilhar
+</button>
+</div>
+</div>
+<div class="toast" id="toast">
+</div>
+<script>
+    let currentListUrl = '';
+    function generateFast() {
+      // Link de anúncio removido. Agora gera a lista diretamente.
+      generateList();
+    }
+    function startCountdown() {
+      const btn = document.getElementById('generateBtn');
+      let timeLeft = 10;
+      btn.disabled = true;
+      btn.textContent = `Aguarde ${timeLeft}s...`;
+      const countdown = setInterval(() => {
+        timeLeft--;
+        btn.textContent = `Aguarde ${timeLeft}s...`;
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          btn.textContent = "Gerando...";
+          generateList();
         }
-        
-        function downloadQR() {
-            const canvas = document.querySelector('#qrcode canvas');
-            if (canvas) {
-                const link = document.createElement('a');
-                link.download = `doorvi-${document.getElementById('qrUnit').textContent}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            }
-        }
-        
-        // Gerar QR code automaticamente ao carregar
-        window.addEventListener('load', () => {
-            generateQR();
-            
-            // Registrar Service Worker para PWA
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registrado com sucesso:', registration);
-                    })
-                    .catch(error => {
-                        console.log('Falha ao registrar Service Worker:', error);
-                    });
-            }
-            
-            // Configurar banner de instalação PWA
-            let deferredPrompt;
-            const installBanner = document.getElementById('installBanner');
-            
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                installBanner.classList.add('show');
-            });
-            
-            installBanner.addEventListener('click', () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            console.log('Usuário aceitou a instalação');
-                        }
-                        deferredPrompt = null;
-                    });
-                }
-                installBanner.classList.remove('show');
-            });
+      }, 1000);
+    }
+    async function generateList() {
+      const usuario = document.getElementById('usuario');
+      const senha = document.getElementById('senha');
+      const urlBase = document.getElementById('urlBase');
+      const copyButtons = document.querySelectorAll('.copy-btn');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const generateBtn = document.getElementById('generateBtn');
+      const buttonGroup = document.getElementById('buttonGroup');
+      // Ativa os campos
+      [usuario, senha, urlBase].forEach(field => {
+        field.disabled = false;
+        field.classList.add("blinking");
+        field.value = "Gerando lista IPTV...";
+      });
+      copyButtons.forEach(btn => btn.disabled = false);
+      downloadBtn.disabled = true;
+      generateBtn.disabled = true;
+      try {
+        const response = await fetch("https://gist.githubusercontent.com/negrete79/90ff964ce523d0d51e2b2392a3057077/raw/cda8b6bbeec263623847319d4be95a679169d518/gistfile1.txt");
+        if (!response.ok) throw new Error("Falha na rede");
+        const data = await response.text();
+        const urls = data.trim().split("\n").filter(url => url.trim() !== '');
+        if (urls.length === 0) throw new Error("Nenhuma URL disponível");
+        const randomUrl = urls[Math.floor(Math.random() * urls.length)];
+        const urlObj = new URL(randomUrl);
+        setTimeout(() => {
+          [usuario, senha, urlBase].forEach(el => el.classList.remove("blinking"));
+          currentListUrl = randomUrl;
+          usuario.value = urlObj.searchParams.get("username") || "N/A";
+          senha.value = urlObj.searchParams.get("password") || "N/A";
+          urlBase.value = urlObj.origin;
+          downloadBtn.disabled = false;
+          buttonGroup.style.display = "flex";
+          generateBtn.textContent = "Gerar Outra Lista";
+          generateBtn.disabled = false;
+          showToast("Lista IPTV gerada com sucesso!");
+        }, 2000);
+      } catch (err) {
+        console.error("Erro ao obter a lista IPTV:", err);
+        showToast("Erro ao obter a lista. Tente novamente.");
+        [usuario, senha, urlBase].forEach(el => {
+          el.classList.remove("blinking");
+          el.value = "";
+          el.disabled = true;
+          el.placeholder = "Clique em 'Gerar Lista IPTV'";
         });
-    </script>
+        copyButtons.forEach(btn => btn.disabled = true);
+        downloadBtn.disabled = true;
+        buttonGroup.style.display = "none";
+        generateBtn.textContent = "Gerar Lista IPTV";
+        generateBtn.disabled = false;
+      }
+    }
+    function copyField(fieldId) {
+      const field = document.getElementById(fieldId);
+      if (!field.value || field.value === "Gerando lista IPTV..." || field.disabled) {
+        showToast("Gere a lista primeiro!");
+        return;
+      }
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(field.value).then(() => showToast("Copiado para área de transferência!")).catch(() => fallbackCopy(field));
+      } else fallbackCopy(field);
+    }
+    function fallbackCopy(field) {
+      try {
+        field.select();
+        field.setSelectionRange(0, 99999);
+        const successful = document.execCommand('copy');
+        if (successful) showToast("Copiado para área de transferência!");
+        else throw new Error('Fallback copy failed');
+      } catch (err) {
+        console.error(err);
+        field.select();
+        showToast("Selecione e copie manualmente (Ctrl+C)");
+      }
+    }
+    function downloadList() {
+      const downloadBtn = document.getElementById('downloadBtn');
+      if (!currentListUrl || currentListUrl === "Gerando lista IPTV..." || downloadBtn.disabled) {
+        showToast("Gere a lista primeiro!");
+        return;
+      }
+      window.location.href = currentListUrl;
+    }
+    document.getElementById('shareBtn').addEventListener('click', function() {
+      const shareUrl = "https://Iptvhamster.pages.dev";
+      if (navigator.share) {
+        navigator.share({
+          title: 'IPTV Hamster - Listas Premium 2025',
+          text: 'Gerador de listas IPTV Premium grátis com canais Full HD, 4K e FHD. Filmes, séries e esportes sem travamentos!',
+           url: shareUrl
+        }).catch(err => {
+          console.error('Erro ao compartilhar:', err);
+          fallbackShare(shareUrl);
+        });
+      } else {
+        // Fallback para navegadores sem suporte a Web Share API
+        fallbackShare(shareUrl);
+      }
+    });
+    function fallbackShare(url) {
+      // Cria um input temporário para copiar o link
+      const tempInput = document.createElement('input');
+      tempInput.value = url;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        const successful = document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        if (successful) {
+          showToast("Link copiado para área de transferência!");
+        } else {
+          throw new Error('Fallback share failed');
+        }
+      } catch (err) {
+        console.error('Erro ao copiar link:', err);
+        showToast("Acesse: " + url);
+      }
+    }
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+</script>
 </body>
 </html>
