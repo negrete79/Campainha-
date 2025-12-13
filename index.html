@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Morador - Doorvi</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0a0e27">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Doorvi Morador">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #0a0e27;
+            --secondary-color: #1e3c72;
+            --accent-color: #00d4ff;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --bg-gradient: linear-gradient(135deg, #0a0e27, #1a237e, #0a0e27);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #b3c5ef;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 80% 70%, rgba(0, 212, 255, 0.1) 0%, transparent 20%);
+            z-index: -1;
+        }
+        
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background: var(--accent-color);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--text-primary), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        
+        .status-bar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger-color);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.online {
+            background: var(--success-color);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+        
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .card-title i {
+            color: var(--accent-color);
+        }
+        
+        .notification {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.9), rgba(192, 57, 43, 0.9));
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            display: none;
+            animation: slideIn 0.5s, pulse 1.5s infinite;
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .notification::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .notification h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        
+        .visitor-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 1.1em;
+        }
+        
+        .visitor-name {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .notification-buttons {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-accept {
+            background: linear-gradient(135deg, var(--success-color), #27ae60);
+            color: white;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .btn-accept:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+        }
+        
+        .btn-reject {
+            background: linear-gradient(135deg, var(--danger-color), #c0392b);
+            color: white;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-reject:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        .btn-end {
+            background: linear-gradient(135deg, var(--danger-color), #c0392b);
+            color: white;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-end:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        .video-container {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .video-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .video-box {
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-label {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .video-label i {
+            color: var(--accent-color);
+        }
+        
+        .waiting {
+            padding: 50px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .waiting-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            animation: float-icon 3s infinite ease-in-out;
+        }
+        
+        @keyframes float-icon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        .waiting h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            font-weight: 300;
+        }
+        
+        .waiting p {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+        
+        .qr-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            display: inline-block;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .qr-section .btn {
+            margin: 20px auto 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .debug {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+            color: var(--text-secondary);
+        }
+        
+        .install-banner {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--accent-color), #0099cc);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+            display: none;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .install-banner.show {
+            display: flex;
+            animation: slideUp 0.5s;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .install-banner:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 212, 255, 0.4);
+        }
+        
+        .install-banner i {
+            font-size: 1.2em;
+        }
+        
+        .call-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .control-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .mic-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .mic-btn.muted {
+            background: var(--danger-color);
+        }
+        
+        .video-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .video-btn.disabled {
+            background: var(--danger-color);
+        }
+        
+        @media (max-width: 768px) {
+            .video-grid { grid-template-columns: 1fr; }
+            .status-bar { flex-direction: column; gap: 15px; }
+            .install-banner { left: 20px; right: 20px; justify-content: center; }
+            h1 { font-size: 2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <header>
+            <h1>DOORVI</h1>
+            <p class="subtitle">Sistema de Interfone Inteligente</p>
+        </header>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span>Status: <span id="connectionStatus">Conectando...</span></span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-home"></i>
+                <span>Unidade: <span id="unitId">APT-101</span></span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-fingerprint"></i>
+                <span>ID: <span id="peerId">--</span></span>
+            </div>
+        </div>
+        
+        <div class="qr-section">
+            <h3 class="card-title">
+                <i class="fas fa-qrcode"></i>
+                QR Code da Sua Campainha
+            </h3>
+            <div class="qr-code" id="qrCode"></div>
+            <button class="btn" onclick="window.open('qr-impressao.html', '_blank')">
+                <i class="fas fa-print"></i>
+                Imprimir QR Code
+            </button>
+        </div>
+        
+        <div class="notification" id="notification">
+            <h3><i class="fas fa-bell"></i> Alguém está na sua porta!</h3>
+            <div class="visitor-info">
+                <div>Visitante: <span class="visitor-name" id="visitorNameDisplay">Carregando...</span></div>
+                <div>Unidade: <span id="callerUnit">--</span></div>
+            </div>
+            
+            <div class="notification-buttons">
+                <button class="btn btn-accept" id="acceptBtn">
+                    <i class="fas fa-video"></i>
+                    Atender
+                </button>
+                <button class="btn btn-reject" id="rejectBtn">
+                    <i class="fas fa-times-circle"></i>
+                    Recusar
+                </button>
+            </div>
+            
+            <div class="debug" id="debugInfo"></div>
+        </div>
+        
+        <div class="waiting" id="waitingScreen">
+            <div class="waiting-icon">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <h2>Sistema Online</h2>
+            <p>Aguardando chamadas de visitantes</p>
+        </div>
+        
+        <div class="video-container" id="videoContainer">
+            <div class="video-grid">
+                <div class="video-box">
+                    <video id="remoteVideo" autoplay playsinline></video>
+                    <div class="video-label">
+                        <i class="fas fa-user"></i>
+                        <span id="remoteVideoLabel">Visitante</span>
+                    </div>
+                </div>
+                <div class="video-box">
+                    <video id="localVideo" autoplay playsinline muted></video>
+                    <div class="video-label">
+                        <i class="fas fa-user-circle"></i>
+                        Você
+                    </div>
+                </div>
+            </div>
+            
+            <div class="call-controls">
+                <button class="control-btn mic-btn" id="micBtn">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="control-btn video-btn" id="videoBtn">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="btn btn-end" id="endCallBtn">
+                    <i class="fas fa-phone-slash"></i>
+                    Encerrar Chamada
+                </button>
+            </div>
+        </div>
+        
+        <div class="debug" id="globalDebug"></div>
+    </div>
+
+    <div id="installBanner" class="install-banner">
+        <i class="fas fa-download"></i>
+        <span>Instalar Doorvi</span>
+        <i class="fas fa-times"></i>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        // Configuração
+        const unitId = "Casa 155";
+        const residentName = "Elias Costa";
+        
+        // Elementos
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const unitIdSpan = document.getElementById('unitId');
+        const peerIdSpan = document.getElementById('peerId');
+        const notification = document.getElementById('notification');
+        const visitorNameDisplay = document.getElementById('visitorNameDisplay');
+        const callerUnit = document.getElementById('callerUnit');
+        const remoteVideoLabel = document.getElementById('remoteVideoLabel');
+        const waitingScreen = document.getElementById('waitingScreen');
+        const videoContainer = document.getElementById('videoContainer');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const localVideo = document.getElementById('localVideo');
+        const acceptBtn = document.getElementById('acceptBtn');
+        const rejectBtn = document.getElementById('rejectBtn');
+        const endCallBtn = document.getElementById('endCallBtn');
+        const micBtn = document.getElementById('micBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const debugInfo = document.getElementById('debugInfo');
+        const globalDebug = document.getElementById('globalDebug');
+        
+        // Variáveis
+        let localStream;
+        let currentCall;
+        let peer;
+        let isMicMuted = false;
+        let isVideoDisabled = false;
+        let ringtoneInterval;
+        let wakeLock = null;
+
+        // Função para manter a tela ativa (Wake Lock)
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    log('Wake Lock ativo. A tela permanecerá ligada.');
+                    connectionStatus.innerHTML = '✅ Online (Tela Ativa)';
+                    wakeLock.addEventListener('release', () => {
+                        log('Wake Lock foi liberado.');
+                        wakeLock = null;
+                    });
+                } else {
+                    log('Wake Lock não suportado.');
+                    alert('Para melhor experiência, mantenha esta aba aberta e o celular carregado.');
+                }
+            } catch (err) {
+                log(`Erro ao solicitar Wake Lock: ${err.name}, ${err.message}`);
+                connectionStatus.textContent = '⚠️ Online (Tela pode desligar)';
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+        
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 5 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                const duration = Math.random() * 20 + 10;
+                particle.style.animationDuration = `${duration}s`;
+                const delay = Math.random() * 20;
+                particle.style.animationDelay = `${delay}s`;
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        function log(message, element = globalDebug) {
+            console.log('[Doorvi]', message);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+        
+        function generateQR() {
+            const qrContainer = document.getElementById('qrCode');
+            const baseUrl = window.location.href.replace('morador.html', '');
+            const visitUrl = `${baseUrl}visitante.html?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: visitUrl, width: 150, height: 150,
+                colorDark: "#000000", colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            log('QR Code gerado: ' + visitUrl);
+        }
+        
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    log('Permissão de notificação: ' + permission);
+                });
+            }
+        }
+        
+        function playPhoneRingtone() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const ringPattern = [
+                    { freq: 440, duration: 800 }, { freq: 0, duration: 400 },
+                    { freq: 440, duration: 800 }, { freq: 0, duration: 2000 }
+                ];
+                let currentTime = audioContext.currentTime;
+                ringPattern.forEach(note => {
+                    if (note.freq > 0) {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        oscillator.type = 'sine';
+                        oscillator.frequency.value = note.freq;
+                        gainNode.gain.setValueAtTime(0, currentTime);
+                        gainNode.gain.linearRampToValueAtTime(0.3, currentTime + 0.05);
+                        gainNode.gain.setValueAtTime(0.3, currentTime + note.duration/1000 - 0.05);
+                        gainNode.gain.linearRampToValueAtTime(0, currentTime + note.duration/1000);
+                        oscillator.start(currentTime);
+                        oscillator.stop(currentTime + note.duration/1000);
+                    }
+                    currentTime += note.duration / 1000;
+                });
+                log('Toque de telefone iniciado');
+            } catch (e) {
+                log('Erro ao tocar toque: ' + e.message);
+            }
+        }
+        
+        function startRingtone() {
+            playPhoneRingtone();
+            ringtoneInterval = setInterval(playPhoneRingtone, 4000);
+            if ('vibrate' in navigator) {
+                navigator.vibrate([500, 500, 500, 500, 500]);
+            }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification('Doorvi - Chamada Recebida', {
+                        body: 'Alguém está na sua porta!', icon: 'icons/icon-192x192.png',
+                        badge: 'icons/badge-72x72.png', vibrate: [200, 100, 200, 100, 200],
+                        tag: 'doorvi-call', renotify: true, requireInteraction: true,
+                        actions: [{ action: 'accept', title: 'Atender' }, { action: 'reject', title: 'Recusar' }]
+                    });
+                }).catch(err => log('Erro ao mostrar notificação: ' + err.message));
+            }
+        }
+        
+        function stopRingtone() {
+            if (ringtoneInterval) {
+                clearInterval(ringtoneInterval);
+                ringtoneInterval = null;
+                log('Toque de telefone parado');
+            }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.getNotifications({ tag: 'doorvi-call' }).then(notifications => {
+                        notifications.forEach(notification => notification.close());
+                    });
+                });
+            }
+        }
+        
+        async function initMediaDevices() {
+            try {
+                log('Solicitando acesso à câmera e microfone...');
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+                log('Câmera e microfone acessados com sucesso');
+                return true;
+            } catch (err) {
+                log('Erro ao acessar dispositivos de mídia: ' + err.message);
+                alert('Não foi possível acessar a câmera e o microfone. Verifique as permissões.');
+                return false;
+            }
+        }
+        
+        function stopMediaDevices() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => { track.stop(); log('Parando track: ' + track.kind); });
+                localStream = null;
+            }
+            if (localVideo.srcObject) {
+                localVideo.srcObject.getTracks().forEach(track => track.stop());
+                localVideo.srcObject = null;
+            }
+        }
+        
+        function initPeer() {
+            log('Inicializando PeerJS...');
+            peer = new Peer(unitId, { debug: 2, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
+            
+            peer.on('open', (id) => {
+                log(`Conectado com ID: ${id}`);
+                statusIndicator.classList.add('online');
+                peerIdSpan.textContent = id;
+                generateQR();
+                requestWakeLock();
+            });
+            
+            peer.on('error', (err) => {
+                log(`Erro: ${err.type} - ${err.message}`);
+                connectionStatus.textContent = '❌ Erro de conexão';
+                statusIndicator.classList.remove('online');
+            });
+            
+            peer.on('call', (call) => {
+                log(`Chamada recebida de: ${call.peer}`);
+                const metadata = call.metadata || {};
+                const visitorName = metadata.visitorName || 'Visitante';
+                
+                notification.style.display = 'block';
+                waitingScreen.style.display = 'none';
+                visitorNameDisplay.textContent = visitorName;
+                callerUnit.textContent = call.peer;
+                startRingtone();
+                currentCall = call;
+                
+                acceptBtn.onclick = async () => {
+                    log('Atendendo chamada...');
+                    stopRingtone();
+                    notification.style.display = 'none';
+                    const mediaOk = await initMediaDevices();
+                    if (!mediaOk) { call.close(); notification.style.display = 'none'; waitingScreen.style.display = 'block'; return; }
+                    remoteVideoLabel.textContent = visitorName;
+                    videoContainer.style.display = 'block';
+                    call.answer(localStream);
+                    
+                    call.on('stream', (stream) => {
+                        log('Stream recebido do visitante');
+                        const videoTracks = stream.getVideoTracks();
+                        if (videoTracks.length > 0) {
+                            remoteVideo.srcObject = stream;
+                            remoteVideo.onloadedmetadata = () => remoteVideo.play().catch(e => log('Erro ao reproduzir vídeo: ' + e.message));
+                        } else { log('Nenhum track de vídeo recebido'); }
+                    });
+                    
+                    call.on('close', () => { log('Chamada encerrada'); endCall(); });
+                    call.on('error', (err) => { log(`Erro na chamada: ${err.message}`); endCall(); });
+                };
+                
+                rejectBtn.onclick = () => {
+                    log('Recusando chamada');
+                    stopRingtone();
+                    call.close();
+                    notification.style.display = 'none';
+                    waitingScreen.style.display = 'block';
+                };
+            });
+        }
+        
+        function endCall() {
+            log('Encerrando chamada');
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getTracks().forEach(track => { track.stop(); log('Parando track: ' + track.kind); });
+                remoteVideo.srcObject = null;
+            }
+            stopMediaDevices();
+            videoContainer.style.display = 'none';
+            waitingScreen.style.display = 'block';
+        }
+        
+        endCallBtn.addEventListener('click', () => { if (currentCall) { currentCall.close(); } endCall(); });
+        
+        micBtn.addEventListener('click', () => {
+            if (localStream) {
+                const audioTracks = localStream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    isMicMuted = !isMicMuted;
+                    audioTracks[0].enabled = !isMicMuted;
+                    micBtn.classList.toggle('muted', isMicMuted);
+                    micBtn.innerHTML = isMicMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+                }
+            }
+        });
+        
+        videoBtn.addEventListener('click', () => {
+            if (localStream) {
+                const videoTracks = localStream.getVideoTracks();
+                if (videoTracks.length > 0) {
+                    isVideoDisabled = !isVideoDisabled;
+                    videoTracks[0].enabled = !isVideoDisabled;
+                    videoBtn.classList.toggle('disabled', isVideoDisabled);
+                    videoBtn.innerHTML = isVideoDisabled ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
+                }
+            }
+        });
+        
+        window.addEventListener('load', async () => {
+            log('Iniciando sistema...');
+            unitIdSpan.textContent = unitId;
+            createParticles();
+            requestNotificationPermission();
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('Service Worker registrado:', registration);
+                }).catch(error => console.log('Falha ao registrar Service Worker:', error));
+            }
+            
+            let deferredPrompt;
+            const installBanner = document.getElementById('installBanner');
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBanner.classList.add('show');
+            });
+            installBanner.addEventListener('click', () => {
+                if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; }); }
+                installBanner.classList.remove('show');
+            });
+            
+            initPeer();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && wakeLock) { releaseWakeLock(); }
+            else if (document.visibilityState === 'visible') { requestWakeLock(); }
+        });
+        window.addEventListener('beforeunload', () => { releaseWakeLock(); });
+    </script>
+</body>
+</html>

@@ -4,167 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chamando Doorvi</title>
-    
-    <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --primary-color: #0a0e27;
-            --secondary-color: #1e3c72;
-            --accent-color: #00d4ff;
-            --success-color: #2ecc71;
-            --danger-color: #e74c3c;
-            --bg-gradient: linear-gradient(135deg, #0a0e27, #1a237e, #0a0e27);
-            --text-primary: #ffffff;
-            --text-secondary: #b3c5ef;
-            --glass-bg: rgba(255, 255, 255, 0.1);
+            --primary-color: #0a0e27; --accent-color: #00d4ff; --success-color: #2ecc71;
+            --danger-color: #e74c3c; --bg-gradient: linear-gradient(135deg, #0a0e27, #1a237e, #0a0e27);
+            --text-primary: #ffffff; --text-secondary: #b3c5ef; --glass-bg: rgba(255, 255, 255, 0.1);
             --glass-border: rgba(255, 255, 255, 0.2);
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: var(--bg-gradient); color: var(--text-primary); min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 20px;
-            overflow: hidden;
         }
-        
-        .container {
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-        }
-        
+        .container { width: 100%; max-width: 600px; text-align: center; }
         .status-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            background: var(--glass-bg); backdrop-filter: blur(10px); border-radius: 20px;
+            padding: 40px; border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
-        
-        h1 {
-            font-size: 2.5em;
-            font-weight: 300;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            background: linear-gradient(90deg, var(--text-primary), var(--accent-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .calling-info {
-            margin: 30px 0;
-            font-size: 1.3em;
-        }
-        
-        .resident-name {
-            color: var(--accent-color);
-            font-weight: bold;
-            font-size: 1.5em;
-        }
-        
-        .status-icon {
-            font-size: 4em;
-            margin: 20px 0;
-            color: var(--accent-color);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.1);
-                opacity: 0.8;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        
-        .video-container {
-            display: none;
-            margin-top: 30px;
-        }
-        
-        .video-box {
-            background: #000;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4/3;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .video-label {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 8px 15px;
-            border-radius: 30px;
-            font-size: 14px;
-        }
-        
+        h1 { font-size: 2.5em; font-weight: 300; margin-bottom: 20px; }
+        .resident-info { margin: 30px 0; }
+        .resident-name { color: var(--accent-color); font-weight: bold; font-size: 1.8em; }
+        .unit-name { color: var(--text-secondary); font-size: 1.2em; }
         .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
+            padding: 15px 40px; border: none; border-radius: 50px; cursor: pointer;
+            font-size: 18px; font-weight: bold; transition: all 0.3s;
+            display: inline-flex; align-items: center; gap: 10px; margin: 10px;
         }
-        
+        .btn-call {
+            background: linear-gradient(135deg, var(--success-color), #27ae60); color: white;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+        .btn-call:hover:not(:disabled) {
+            transform: translateY(-3px); box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
+        }
+        .btn-call:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
         .btn-cancel {
-            background: linear-gradient(135deg, var(--danger-color), #c0392b);
-            color: white;
+            background: linear-gradient(135deg, var(--danger-color), #c0392b); color: white;
             box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
         }
-        
-        .btn-cancel:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+        .btn-cancel:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4); }
+        .calling-state { display: none; margin-top: 30px; }
+        .status-icon {
+            font-size: 4em; margin: 20px 0; color: var(--accent-color); animation: pulse 2s infinite;
         }
-        
-        .error-message {
-            color: var(--danger-color);
-            margin-top: 20px;
-            font-size: 1.1em;
-            display: none;
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .video-container { display: none; margin-top: 30px; }
+        .video-box {
+            background: #000; border-radius: 15px; overflow: hidden; position: relative;
+            width: 100%; aspect-ratio: 4/3; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .video-label {
+            position: absolute; bottom: 15px; left: 15px; background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px; border-radius: 30px; font-size: 14px;
+        }
+        .error-message { color: var(--danger-color); margin-top: 20px; font-size: 1.1em; display: none; }
+        .visitor-name-input {
+            margin: 20px 0; padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.1); color: white; font-size: 16px; width: 80%;
+        }
+        .visitor-name-input::placeholder { color: var(--text-secondary); }
     </style>
 </head>
 <body>
@@ -172,22 +75,29 @@
         <div class="status-card">
             <h1>DOORVI</h1>
             
-            <div id="callingScreen">
+            <div id="startScreen">
+                <div class="resident-info">
+                    <span class="resident-name" id="residentName">--</span><br>
+                    <span class="unit-name" id="unitName">--</span>
+                </div>
+                <p>Por favor, digite seu nome para chamar:</p>
+                <input type="text" id="visitorNameInput" class="visitor-name-input" placeholder="Seu nome" maxlength="30">
+                <br>
+                <button class="btn btn-call" id="callBtn">
+                    <i class="fas fa-video"></i>
+                    Iniciar Chamada
+                </button>
+            </div>
+            
+            <div class="calling-state" id="callingScreen">
                 <div class="status-icon">
                     <i class="fas fa-phone-volume"></i>
                 </div>
-                <div class="calling-info">
-                    Chamando<br>
-                    <span class="resident-name" id="residentName">--</span><br>
-                    <span id="unitName">--</span>
-                </div>
                 <p id="statusMessage">Conectando...</p>
-                <div class="error-message" id="errorMessage">
-                    Morador não encontrado ou offline. Tente novamente mais tarde.
-                </div>
+                <div class="error-message" id="errorMessage"></div>
                 <button class="btn btn-cancel" id="cancelBtn">
                     <i class="fas fa-phone-slash"></i>
-                    Cancelar Chamada
+                    Cancelar
                 </button>
             </div>
             
@@ -207,11 +117,13 @@
     </div>
 
     <script>
-        // Elementos
         const residentNameEl = document.getElementById('residentName');
         const unitNameEl = document.getElementById('unitName');
+        const visitorNameInput = document.getElementById('visitorNameInput');
+        const callBtn = document.getElementById('callBtn');
         const statusMessage = document.getElementById('statusMessage');
         const errorMessage = document.getElementById('errorMessage');
+        const startScreen = document.getElementById('startScreen');
         const callingScreen = document.getElementById('callingScreen');
         const videoContainer = document.getElementById('videoContainer');
         const remoteVideo = document.getElementById('remoteVideo');
@@ -219,135 +131,97 @@
         const cancelBtn = document.getElementById('cancelBtn');
         const endCallBtn = document.getElementById('endCallBtn');
         
-        // Variáveis
-        let localStream;
-        let currentCall;
-        let peer;
+        let localStream, currentCall, peer;
         
-        // Obter parâmetros da URL
         const urlParams = new URLSearchParams(window.location.search);
         const unitId = urlParams.get('unit');
         const residentName = urlParams.get('resident');
-        const visitorName = prompt("Por favor, digite seu nome:") || "Visitante";
         
-        // Verificar se os parâmetros existem
         if (!unitId || !residentName) {
             alert("Link de chamada inválido!");
-            // Opcional: redirecionar para uma página de erro
+            document.body.innerHTML = `<h1>Erro</h1><p>Link de chamada inválido. Verifique o QR Code.</p>`;
         } else {
             residentNameEl.textContent = residentName;
             unitNameEl.textContent = `Unidade: ${unitId}`;
-            initializeCall();
         }
         
-        // Inicializar chamada
-        async function initializeCall() {
+        function cleanup() {
+            if (currentCall) { currentCall.close(); currentCall = null; }
+            if (peer) { peer.destroy(); peer = null; }
+            if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+        }
+
+        function resetUI() {
+            startScreen.style.display = 'block';
+            callingScreen.style.display = 'none';
+            videoContainer.style.display = 'none';
+            callBtn.disabled = false;
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+        }
+
+        async function startCallAttempt() {
+            const visitorName = visitorNameInput.value.trim() || "Visitante Anônimo";
+            
+            startScreen.style.display = 'none';
+            callingScreen.style.display = 'block';
+            callBtn.disabled = true;
+
             try {
-                // Solicitar permissão e obter stream local
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: true, 
-                    audio: true 
-                });
+                statusMessage.textContent = 'Solicitando acesso à câmera...';
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 
-                // Criar um peer aleatório para o visitante
+                statusMessage.textContent = 'Conectando...';
                 peer = new Peer();
                 
                 peer.on('open', () => {
-                    statusMessage.textContent = 'Iniciando chamada...';
+                    statusMessage.textContent = 'Chamando...';
+                    currentCall = peer.call(unitId, localStream, { metadata: { visitorName: visitorName } });
                     
-                    // Fazer a chamada para o morador
-                    currentCall = peer.call(unitId, localStream, {
-                        metadata: { visitorName: visitorName }
-                    });
-                    
-                    if (!currentCall) {
-                        showError();
-                        return;
-                    }
+                    if (!currentCall) { showError("Não foi possível iniciar a chamada."); return; }
                     
                     currentCall.on('stream', (remoteStream) => {
                         statusMessage.textContent = 'Chamada conectada!';
                         errorMessage.style.display = 'none';
-                        
-                        // Mostrar vídeo do morador
                         remoteVideo.srcObject = remoteStream;
                         remoteVideoLabel.textContent = residentName;
-                        
-                        // Trocar a tela
                         callingScreen.style.display = 'none';
                         videoContainer.style.display = 'block';
                     });
                     
-                    currentCall.on('close', () => {
-                        endCall();
-                    });
+                    currentCall.on('close', () => { endCall(); });
+                    currentCall.on('error', (err) => { showError("Falha na chamada. O morador pode estar offline."); });
                     
-                    currentCall.on('error', (err) => {
-                        console.error('Erro na chamada:', err);
-                        showError();
-                    });
-                    
-                    // Timeout para caso o morador não atenda
                     setTimeout(() => {
                         if (currentCall && currentCall.open === false) {
-                            showError();
+                            showError("O morador não atendeu. Tente novamente.");
                         }
-                    }, 30000); // 30 segundos
+                    }, 30000);
                 });
                 
-                peer.on('error', (err) => {
-                    console.error('Erro no PeerJS:', err);
-                    showError();
-                });
+                peer.on('error', (err) => { showError("Erro de conexão. Verifique sua internet."); });
                 
             } catch (err) {
-                console.error('Erro ao acessar câmera/microfone:', err);
-                statusMessage.textContent = 'Erro: Permissão de câmera/microfone negada.';
-                alert('É necessário permitir o acesso à câmera e ao microfone para fazer a chamada.');
+                showError('Permissão de câmera/microfone negada.');
             }
         }
         
-        function showError() {
-            statusMessage.style.display = 'none';
+        function showError(message) {
+            statusMessage.textContent = 'Falha na chamada';
+            errorMessage.textContent = message;
             errorMessage.style.display = 'block';
-            if (currentCall) {
-                currentCall.close();
-            }
-            if (peer) {
-                peer.destroy();
-            }
+            cleanup();
         }
         
         function endCall() {
-            if (currentCall) {
-                currentCall.close();
-            }
-            if (peer) {
-                peer.destroy();
-            }
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-            }
-            
-            // Redirecionar para uma página de "obrigado" ou fechar a aba
-            document.body.innerHTML = `
-                <div style="text-align: center; padding: 50px; font-family: sans-serif; color: #333;">
-                    <h1>Chamada Encerrada</h1>
-                    <p>Obrigado por usar o Doorvi.</p>
-                    <p>Você pode fechar esta janela.</p>
-                </div>
-            `;
+            cleanup();
+            document.body.innerHTML = `<div style="text-align: center; padding: 50px; color: white;"><h1>Chamada Encerrada</h1><p>Você pode fechar esta janela.</p></div>`;
         }
         
-        cancelBtn.addEventListener('click', () => {
-            if (confirm('Tem certeza que deseja cancelar a chamada?')) {
-                endCall();
-            }
-        });
-        
-        endCallBtn.addEventListener('click', () => {
-            endCall();
-        });
+        callBtn.addEventListener('click', startCallAttempt);
+        cancelBtn.addEventListener('click', () => { cleanup(); resetUI(); });
+        endCallBtn.addEventListener('click', endCall);
+        window.addEventListener('load', () => { visitorNameInput.focus(); });
     </script>
 </body>
 </html>

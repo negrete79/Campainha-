@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code para Impressão - Doorvi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4; color: #333;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;
+        }
+        .print-area {
+            background-color: white; border: 2px dashed #ccc; padding: 40px;
+            text-align: center; width: 100%; max-width: 400px; box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1 { color: #0a0e27; margin-bottom: 10px; font-size: 24px; }
+        .subtitle { color: #555; margin-bottom: 20px; font-size: 16px; }
+        #qrCode { margin: 20px auto; padding: 20px; background: white; display: inline-block; border: 1px solid #eee; }
+        .info { margin-top: 20px; font-size: 18px; font-weight: bold; }
+        .info span { color: #00d4ff; }
+        @media print {
+            body { background-color: white; padding: 0; }
+            .print-area { border: none; box-shadow: none; padding: 20px; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-area">
+        <h1>Toque a Campainha Digital</h1>
+        <p class="subtitle">Escaneie o QR Code para chamar</p>
+        <div id="qrCode"></div>
+        <div class="info">
+            Chamando: <span id="residentDisplay">--</span><br>
+            Unidade: <span id="unitDisplay">--</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        const unitId = "Casa 155";
+        const residentName = "Elias Costa";
+        
+        document.getElementById('residentDisplay').textContent = residentName;
+        document.getElementById('unitDisplay').textContent = unitId;
+
+        const qrContainer = document.getElementById('qrCode');
+        const baseUrl = window.location.href.replace('qr-impressao.html', 'visitante.html');
+        const visitUrl = `${baseUrl}?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
+        
+        new QRCode(qrContainer, {
+            text: visitUrl, width: 200, height: 200,
+            colorDark: "#000000", colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    </script>
+</body>
+</html>
