@@ -184,6 +184,23 @@
             box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
         }
         
+        .input-icon {
+            position: relative;
+        }
+        
+        .input-icon i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+        
+        .input-icon input {
+            padding-right: 45px;
+        }
+        
         .btn {
             padding: 15px 30px;
             border: none;
@@ -374,6 +391,28 @@
             color: var(--text-secondary);
         }
         
+        .quick-names {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .name-chip {
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid var(--accent-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+        
+        .name-chip:hover {
+            background: var(--accent-color);
+            transform: scale(1.05);
+        }
+        
         @media (max-width: 768px) {
             .video-grid {
                 grid-template-columns: 1fr;
@@ -425,8 +464,18 @@
             </div>
             
             <div class="form-group">
-                <label for="visitorName">Seu Nome (opcional):</label>
-                <input type="text" id="visitorName" placeholder="Digite seu nome">
+                <label for="visitorName">Seu Nome:</label>
+                <div class="input-icon">
+                    <input type="text" id="visitorName" placeholder="Digite seu nome" autocomplete="name">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="quick-names">
+                    <div class="name-chip" onclick="setVisitorName('Entregador')">Entregador</div>
+                    <div class="name-chip" onclick="setVisitorName('Correios')">Correios</div>
+                    <div class="name-chip" onclick="setVisitorName('Taxi/Uber')">Taxi/Uber</div>
+                    <div class="name-chip" onclick="setVisitorName('Manutenção')">Manutenção</div>
+                    <div class="name-chip" onclick="setVisitorName('Amigo')">Amigo</div>
+                </div>
             </div>
             
             <button class="btn btn-primary" id="callBtn">
@@ -448,7 +497,7 @@
                     <video id="localVideo" autoplay playsinline muted></video>
                     <div class="video-label">
                         <i class="fas fa-user"></i>
-                        Você
+                        <span id="localVideoLabel">Você</span>
                     </div>
                 </div>
             </div>
@@ -481,6 +530,7 @@
         const videoContainer = document.getElementById('videoContainer');
         const remoteVideo = document.getElementById('remoteVideo');
         const localVideo = document.getElementById('localVideo');
+        const localVideoLabel = document.getElementById('localVideoLabel');
         const endCallBtn = document.getElementById('endCallBtn');
         const micBtn = document.getElementById('micBtn');
         const videoBtn = document.getElementById('videoBtn');
@@ -523,6 +573,16 @@
             const timestamp = new Date().toLocaleTimeString();
             debugInfo.textContent += `[${timestamp}] ${message}\n`;
             debugInfo.scrollTop = debugInfo.scrollHeight;
+        }
+        
+        // Definir nome do visitante rapidamente
+        function setVisitorName(name) {
+            visitorNameInput.value = name;
+            // Adiciona animação de feedback
+            visitorNameInput.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                visitorNameInput.style.transform = 'scale(1)';
+            }, 200);
         }
         
         // Inicializar câmera e microfone
@@ -592,7 +652,7 @@
         // Fazer chamada
         async function makeCall() {
             const selectedUnit = unitSelect.value;
-            const visitorName = visitorNameInput.value || 'Visitante';
+            const visitorName = visitorNameInput.value.trim() || 'Visitante';
             
             if (!selectedUnit) {
                 alert('Por favor, selecione uma unidade.');
@@ -603,10 +663,17 @@
             const mediaOk = await initMediaDevices();
             if (!mediaOk) return;
             
-            log(`Chamando ${selectedUnit}...`);
+            log(`Chamando ${selectedUnit} como ${visitorName}...`);
             
-            // Fazer chamada
-            currentCall = peer.call(selectedUnit, localStream);
+            // Atualizar label do vídeo local
+            localVideoLabel.textContent = visitorName;
+            
+            // Fazer chamada com metadados
+            currentCall = peer.call(selectedUnit, localStream, {
+                metadata: {
+                    visitorName: visitorName
+                }
+            });
             
             if (!currentCall) {
                 log('Falha ao iniciar chamada');

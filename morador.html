@@ -258,6 +258,20 @@
             margin-bottom: 15px;
         }
         
+        .visitor-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 1.1em;
+        }
+        
+        .visitor-name {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
         .notification-buttons {
             margin-top: 25px;
             display: flex;
@@ -590,7 +604,10 @@
         
         <div class="notification" id="notification">
             <h3><i class="fas fa-bell"></i> Alguém está na sua porta!</h3>
-            <p>Visitante aguardando atendimento</p>
+            <div class="visitor-info">
+                <div>Visitante: <span class="visitor-name" id="visitorNameDisplay">Carregando...</span></div>
+                <div>Unidade: <span id="callerUnit">--</span></div>
+            </div>
             
             <div class="notification-buttons">
                 <button class="btn btn-accept" id="acceptBtn">
@@ -620,7 +637,7 @@
                     <video id="remoteVideo" autoplay playsinline></video>
                     <div class="video-label">
                         <i class="fas fa-user"></i>
-                        Visitante
+                        <span id="remoteVideoLabel">Visitante</span>
                     </div>
                 </div>
                 <div class="video-box">
@@ -659,8 +676,8 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
         // Configuração
-        const unitId = "APT-101";
-        const residentName = "João Silva";
+        const unitId = "Casa 155";
+        const residentName = "Elias Costa";
         
         // Elementos
         const connectionStatus = document.getElementById('connectionStatus');
@@ -668,6 +685,9 @@
         const unitIdSpan = document.getElementById('unitId');
         const peerIdSpan = document.getElementById('peerId');
         const notification = document.getElementById('notification');
+        const visitorNameDisplay = document.getElementById('visitorNameDisplay');
+        const callerUnit = document.getElementById('callerUnit');
+        const remoteVideoLabel = document.getElementById('remoteVideoLabel');
         const waitingScreen = document.getElementById('waitingScreen');
         const videoContainer = document.getElementById('videoContainer');
         const remoteVideo = document.getElementById('remoteVideo');
@@ -686,6 +706,7 @@
         let peer;
         let isMicMuted = false;
         let isVideoDisabled = false;
+        let ringtoneInterval;
         
         // Criar partículas animadas
         function createParticles() {
@@ -743,50 +764,76 @@
             log('QR Code gerado: ' + visitUrl);
         }
         
-        // Som de notificação em volume máximo
-        function playNotificationSound() {
+        // Som de telefone (ringtone realista)
+        function playPhoneRingtone() {
             try {
-                // Usar Web Audio API para controle preciso do volume
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
-                // Criar um som de campainha mais alto e complexo
-                for (let i = 0; i < 8; i++) {
-                    setTimeout(() => {
+                // Padrão de toque de telefone tradicional
+                const ringPattern = [
+                    { freq: 440, duration: 800 },  // Nota A4
+                    { freq: 0, duration: 400 },    // Pausa
+                    { freq: 440, duration: 800 },  // Nota A4
+                    { freq: 0, duration: 2000 }    // Pausa longa
+                ];
+                
+                let currentTime = audioContext.currentTime;
+                
+                ringPattern.forEach(note => {
+                    if (note.freq > 0) {
                         const oscillator = audioContext.createOscillator();
                         const gainNode = audioContext.createGain();
                         
                         oscillator.connect(gainNode);
                         gainNode.connect(audioContext.destination);
                         
-                        // Alternar entre duas frequências para criar um som de campainha
                         oscillator.type = 'sine';
-                        oscillator.frequency.value = i % 2 === 0 ? 800 : 1000;
+                        oscillator.frequency.value = note.freq;
                         
-                        // Volume máximo (1.0)
-                        gainNode.gain.value = 1.0;
+                        // Fade in e fade out suaves
+                        gainNode.gain.setValueAtTime(0, currentTime);
+                        gainNode.gain.linearRampToValueAtTime(0.3, currentTime + 0.05);
+                        gainNode.gain.setValueAtTime(0.3, currentTime + note.duration/1000 - 0.05);
+                        gainNode.gain.linearRampToValueAtTime(0, currentTime + note.duration/1000);
                         
-                        oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.4);
-                    }, i * 500);
-                }
+                        oscillator.start(currentTime);
+                        oscillator.stop(currentTime + note.duration/1000);
+                    }
+                    currentTime += note.duration / 1000;
+                });
                 
-                // Vibração intensa para dispositivos móveis
-                if ('vibrate' in navigator) {
-                    navigator.vibrate([500, 200, 500, 200, 500]);
-                }
-                
-                log('Som de notificação tocado no volume máximo');
+                log('Toque de telefone iniciado');
             } catch (e) {
-                log('Erro ao tocar som: ' + e.message);
+                log('Erro ao tocar toque: ' + e.message);
                 
-                // Fallback para áudio pré-gravado
+                // Fallback com áudio pré-gravado de toque de telefone
                 try {
-                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmFgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+                    const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
                     audio.volume = 1.0;
-                    audio.play();
+                    audio.play().catch(() => {});
                 } catch (e2) {
                     log('Erro no fallback de áudio: ' + e2.message);
                 }
+            }
+        }
+        
+        // Iniciar toque repetido
+        function startRingtone() {
+            playPhoneRingtone();
+            ringtoneInterval = setInterval(playPhoneRingtone, 4000); // Repetir a cada 4 segundos
+            
+            // Vibração para dispositivos móveis
+            if ('vibrate' in navigator) {
+                navigator.vibrate([500, 500, 500, 500, 500]);
+            }
+        }
+        
+        // Parar toque
+        function stopRingtone() {
+            if (ringtoneInterval) {
+                clearInterval(ringtoneInterval);
+                ringtoneInterval = null;
+                log('Toque de telefone parado');
             }
         }
         
@@ -860,12 +907,20 @@
             peer.on('call', (call) => {
                 log(`Chamada recebida de: ${call.peer}`);
                 
+                // Extrair metadados da chamada (nome do visitante)
+                const metadata = call.metadata || {};
+                const visitorName = metadata.visitorName || 'Visitante';
+                
                 // Mostrar notificação
                 notification.style.display = 'block';
                 waitingScreen.style.display = 'none';
                 
-                // Tocar som em volume máximo
-                playNotificationSound();
+                // Exibir informações do visitante
+                visitorNameDisplay.textContent = visitorName;
+                callerUnit.textContent = call.peer;
+                
+                // Iniciar toque de telefone
+                startRingtone();
                 
                 // Salvar referência
                 currentCall = call;
@@ -873,6 +928,9 @@
                 // Configurar botão de atender
                 acceptBtn.onclick = async () => {
                     log('Atendendo chamada...');
+                    
+                    // Parar toque
+                    stopRingtone();
                     
                     // Esconder notificação
                     notification.style.display = 'none';
@@ -885,6 +943,9 @@
                         waitingScreen.style.display = 'block';
                         return;
                     }
+                    
+                    // Atualizar label do vídeo
+                    remoteVideoLabel.textContent = visitorName;
                     
                     // Mostrar vídeo
                     videoContainer.style.display = 'block';
@@ -933,6 +994,7 @@
                 // Configurar botão de recusar
                 rejectBtn.onclick = () => {
                     log('Recusando chamada');
+                    stopRingtone();
                     call.close();
                     notification.style.display = 'none';
                     waitingScreen.style.display = 'block';
