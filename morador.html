@@ -671,4 +671,383 @@
         const waitingScreen = document.getElementById('waitingScreen');
         const videoContainer = document.getElementById('videoContainer');
         const remoteVideo = document.getElementById('remoteVideo');
-        const localVide
+        const localVideo = document.getElementById('localVideo');
+        const acceptBtn = document.getElementById('acceptBtn');
+        const rejectBtn = document.getElementById('rejectBtn');
+        const endCallBtn = document.getElementById('endCallBtn');
+        const micBtn = document.getElementById('micBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const debugInfo = document.getElementById('debugInfo');
+        const globalDebug = document.getElementById('globalDebug');
+        
+        // Variáveis
+        let localStream;
+        let currentCall;
+        let peer;
+        let isMicMuted = false;
+        let isVideoDisabled = false;
+        
+        // Criar partículas animadas
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Tamanho aleatório
+                const size = Math.random() * 5 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Posição aleatória
+                particle.style.left = `${Math.random() * 100}%`;
+                
+                // Duração de animação aleatória
+                const duration = Math.random() * 20 + 10;
+                particle.style.animationDuration = `${duration}s`;
+                
+                // Atraso aleatório
+                const delay = Math.random() * 20;
+                particle.style.animationDelay = `${delay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Função de log
+        function log(message, element = globalDebug) {
+            console.log('[Doorvi]', message);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+        
+        // Gerar QR Code
+        function generateQR() {
+            const qrContainer = document.getElementById('qrCode');
+            const baseUrl = window.location.href.replace('morador.html', '');
+            const visitUrl = `${baseUrl}visitante.html?unit=${encodeURIComponent(unitId)}&resident=${encodeURIComponent(residentName)}`;
+            
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: visitUrl,
+                width: 150,
+                height: 150,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            log('QR Code gerado: ' + visitUrl);
+        }
+        
+        // Som de notificação em volume máximo
+        function playNotificationSound() {
+            try {
+                // Usar Web Audio API para controle preciso do volume
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Criar um som de campainha mais alto e complexo
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        // Alternar entre duas frequências para criar um som de campainha
+                        oscillator.type = 'sine';
+                        oscillator.frequency.value = i % 2 === 0 ? 800 : 1000;
+                        
+                        // Volume máximo (1.0)
+                        gainNode.gain.value = 1.0;
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.4);
+                    }, i * 500);
+                }
+                
+                // Vibração intensa para dispositivos móveis
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([500, 200, 500, 200, 500]);
+                }
+                
+                log('Som de notificação tocado no volume máximo');
+            } catch (e) {
+                log('Erro ao tocar som: ' + e.message);
+                
+                // Fallback para áudio pré-gravado
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmFgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+                    audio.volume = 1.0;
+                    audio.play();
+                } catch (e2) {
+                    log('Erro no fallback de áudio: ' + e2.message);
+                }
+            }
+        }
+        
+        // Inicializar microfone e câmera (só quando a chamada for aceita)
+        async function initMediaDevices() {
+            try {
+                log('Solicitando acesso à câmera e microfone...');
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true, 
+                    audio: true 
+                });
+                
+                // Exibir vídeo local
+                localVideo.srcObject = localStream;
+                
+                log('Câmera e microfone acessados com sucesso');
+                return true;
+            } catch (err) {
+                log('Erro ao acessar dispositivos de mídia: ' + err.message);
+                alert('Não foi possível acessar a câmera e o microfone. Verifique as permissões.');
+                return false;
+            }
+        }
+        
+        // Parar dispositivos de mídia
+        function stopMediaDevices() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    track.stop();
+                    log('Parando track: ' + track.kind);
+                });
+                localStream = null;
+            }
+            
+            if (localVideo.srcObject) {
+                localVideo.srcObject.getTracks().forEach(track => {
+                    track.stop();
+                });
+                localVideo.srcObject = null;
+            }
+        }
+        
+        // Inicializar PeerJS
+        function initPeer() {
+            log('Inicializando PeerJS...');
+            
+            peer = new Peer(unitId, {
+                debug: 2,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            });
+            
+            peer.on('open', (id) => {
+                log(`Conectado com ID: ${id}`);
+                connectionStatus.textContent = '✅ Online';
+                statusIndicator.classList.add('online');
+                peerIdSpan.textContent = id;
+                generateQR();
+            });
+            
+            peer.on('error', (err) => {
+                log(`Erro: ${err.type} - ${err.message}`);
+                connectionStatus.textContent = '❌ Erro de conexão';
+                statusIndicator.classList.remove('online');
+            });
+            
+            peer.on('call', (call) => {
+                log(`Chamada recebida de: ${call.peer}`);
+                
+                // Mostrar notificação
+                notification.style.display = 'block';
+                waitingScreen.style.display = 'none';
+                
+                // Tocar som em volume máximo
+                playNotificationSound();
+                
+                // Salvar referência
+                currentCall = call;
+                
+                // Configurar botão de atender
+                acceptBtn.onclick = async () => {
+                    log('Atendendo chamada...');
+                    
+                    // Esconder notificação
+                    notification.style.display = 'none';
+                    
+                    // Inicializar dispositivos de mídia
+                    const mediaOk = await initMediaDevices();
+                    if (!mediaOk) {
+                        call.close();
+                        notification.style.display = 'none';
+                        waitingScreen.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Mostrar vídeo
+                    videoContainer.style.display = 'block';
+                    
+                    // Atender chamada
+                    call.answer(localStream);
+                    
+                    // Configurar recebimento de vídeo
+                    call.on('stream', (stream) => {
+                        log('Stream recebido do visitante');
+                        
+                        // Verificar tracks de vídeo
+                        const videoTracks = stream.getVideoTracks();
+                        log(`Tracks de vídeo: ${videoTracks.length}`);
+                        
+                        if (videoTracks.length > 0) {
+                            log('Configurando elemento de vídeo');
+                            remoteVideo.srcObject = stream;
+                            
+                            remoteVideo.onloadedmetadata = () => {
+                                log('Vídeo carregado com sucesso');
+                                remoteVideo.play().catch(e => {
+                                    log('Erro ao reproduzir vídeo: ' + e.message);
+                                });
+                            };
+                            
+                            remoteVideo.onerror = (e) => {
+                                log('Erro no elemento de vídeo: ' + e);
+                            };
+                        } else {
+                            log('Nenhum track de vídeo recebido');
+                        }
+                    });
+                    
+                    call.on('close', () => {
+                        log('Chamada encerrada');
+                        endCall();
+                    });
+                    
+                    call.on('error', (err) => {
+                        log(`Erro na chamada: ${err.message}`);
+                        endCall();
+                    });
+                };
+                
+                // Configurar botão de recusar
+                rejectBtn.onclick = () => {
+                    log('Recusando chamada');
+                    call.close();
+                    notification.style.display = 'none';
+                    waitingScreen.style.display = 'block';
+                };
+            });
+        }
+        
+        // Encerrar chamada
+        function endCall() {
+            log('Encerrando chamada');
+            
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getTracks().forEach(track => {
+                    track.stop();
+                    log('Parando track: ' + track.kind);
+                });
+                remoteVideo.srcObject = null;
+            }
+            
+            stopMediaDevices();
+            
+            videoContainer.style.display = 'none';
+            waitingScreen.style.display = 'block';
+        }
+        
+        // Botão de encerrar chamada
+        endCallBtn.addEventListener('click', () => {
+            if (currentCall) {
+                currentCall.close();
+            }
+            endCall();
+        });
+        
+        // Controles de microfone e vídeo
+        micBtn.addEventListener('click', () => {
+            if (localStream) {
+                const audioTracks = localStream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    isMicMuted = !isMicMuted;
+                    audioTracks[0].enabled = !isMicMuted;
+                    
+                    if (isMicMuted) {
+                        micBtn.classList.add('muted');
+                        micBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+                    } else {
+                        micBtn.classList.remove('muted');
+                        micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    }
+                }
+            }
+        });
+        
+        videoBtn.addEventListener('click', () => {
+            if (localStream) {
+                const videoTracks = localStream.getVideoTracks();
+                if (videoTracks.length > 0) {
+                    isVideoDisabled = !isVideoDisabled;
+                    videoTracks[0].enabled = !isVideoDisabled;
+                    
+                    if (isVideoDisabled) {
+                        videoBtn.classList.add('disabled');
+                        videoBtn.innerHTML = '<i class="fas fa-video-slash"></i>';
+                    } else {
+                        videoBtn.classList.remove('disabled');
+                        videoBtn.innerHTML = '<i class="fas fa-video"></i>';
+                    }
+                }
+            }
+        });
+        
+        // Inicializar sistema
+        window.addEventListener('load', async () => {
+            log('Iniciando sistema...');
+            unitIdSpan.textContent = unitId;
+            
+            // Criar partículas animadas
+            createParticles();
+            
+            // Registrar Service Worker para PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Falha ao registrar Service Worker:', error);
+                    });
+            }
+            
+            // Configurar banner de instalação PWA
+            let deferredPrompt;
+            const installBanner = document.getElementById('installBanner');
+            
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBanner.classList.add('show');
+            });
+            
+            installBanner.addEventListener('click', () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('Usuário aceitou a instalação');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+                installBanner.classList.remove('show');
+            });
+            
+            // Inicializar Peer (sem inicializar mídia ainda)
+            initPeer();
+        });
+    </script>
+</body>
+</html>
