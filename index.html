@@ -826,7 +826,25 @@
         
         function initPeer() {
             log('Inicializando PeerJS...');
-            peer = new Peer(unitId, { debug: 2, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
+            peer = new Peer(unitId, { 
+                debug: 2,
+                // MELHORIA: Adicionando servidores TURN para conexões mais confiáveis
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { 
+                            urls: 'turn:openrelay.metered.ca:80', 
+                            username: 'openrelayproject', 
+                            credential: 'openrelayproject' 
+                        },
+                        { 
+                            urls: 'turn:openrelay.metered.ca:443', 
+                            username: 'openrelayproject', 
+                            credential: 'openrelayproject' 
+                        }
+                    ]
+                } 
+            });
             
             peer.on('open', (id) => {
                 log(`Conectado com ID: ${id}`);
@@ -837,7 +855,7 @@
             });
             
             peer.on('error', (err) => {
-                log(`Erro: ${err.type} - ${err.message}`);
+                log(`Erro de Conexão: ${err.type} - ${err.message}`);
                 connectionStatus.textContent = '❌ Erro de conexão';
                 statusIndicator.classList.remove('online');
             });

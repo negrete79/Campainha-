@@ -172,7 +172,24 @@
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 
                 statusMessage.textContent = 'Conectando...';
-                peer = new Peer();
+                peer = new Peer({
+                    // MELHORIA: Adicionando servidores TURN para conexões mais confiáveis
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { 
+                                urls: 'turn:openrelay.metered.ca:80', 
+                                username: 'openrelayproject', 
+                                credential: 'openrelayproject' 
+                            },
+                            { 
+                                urls: 'turn:openrelay.metered.ca:443', 
+                                username: 'openrelayproject', 
+                                credential: 'openrelayproject' 
+                            }
+                        ]
+                    }
+                });
                 
                 peer.on('open', () => {
                     statusMessage.textContent = 'Chamando...';
